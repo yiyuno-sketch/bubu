@@ -149,6 +149,14 @@
         <i data-lucide="edit-3" class="w-4 h-4"></i>
         <span>묵상 메모</span>
       </button>
+      <button onclick="sharePortion()" class="bg-indigo-900 text-white text-xs font-semibold px-4 py-2 rounded-xl flex items-center space-x-1.5 shadow-sm active:scale-95 transition-all">
+        <i data-lucide="share-2" class="w-4 h-4"></i>
+        <span>포션 나눔</span>
+      </button>
+      
+      
+      
+      
       <button class="bg-indigo-900 text-white text-xs font-semibold px-4 py-2 rounded-xl flex items-center space-x-1.5 shadow-sm active:scale-95 transition-all">
         <i data-lucide="share-2" class="w-4 h-4"></i>
         <span>포션 나눔</span>
@@ -348,6 +356,47 @@
       }
     });
 
+// ============================================
+// 포션 나눔: 시스템 전체 공유창 호출 (Web Share API)
+// ============================================
+async function sharePortion() {
+  // 현재 보고 있는 주차의 제목과 본문 정보 가져오기
+  const titleText = document.getElementById('header-title') ? document.getElementById('header-title').innerText : '토라포션 365';
+  const hebrewText = document.getElementById('header-hebrew') ? document.getElementById('header-hebrew').innerText : '';
+  const dateInfo = document.getElementById('header-date') ? document.getElementById('header-date').innerText : '';
+  
+  // 현재 접속 중인 웹페이지 URL (Vercel 또는 GitHub Pages 주소)
+  const shareUrl = window.location.href;
+
+  const shareData = {
+    title: `${titleText} ${hebrewText}`,
+    text: `[토라포션 365]\n${titleText} ${hebrewText}\n${dateInfo}\n말씀과 강해를 함께 나눕니다.`,
+    url: shareUrl
+  };
+
+  // 1. 스마트폰(안드로이드/iOS) 기본 시스템 공유창 지원 시
+  if (navigator.share) {
+    try {
+      await navigator.share(shareData);
+      console.log('공유 성공');
+    } catch (err) {
+      // 사용자가 취소를 눌렀을 때는 오류 메시지를 띄우지 않음
+      if (err.name !== 'AbortError') {
+        console.error('공유 중 오류 발생:', err);
+      }
+    }
+  } else {
+    // 2. PC 또는 지원하지 않는 브라우저일 경우 링크 자동 복사
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      alert('공유 링크가 클립보드에 복사되었습니다!\n원하는 곳(카카오톡, SNS 등)에 붙여넣기 하세요.');
+    } catch (clipErr) {
+      // 복사 권한이 없을 경우 프롬프트로 표시
+      prompt('아래 링크를 복사하여 공유하세요:', shareUrl);
+    }
+  }
+}
+    
     // 시작 시 자동 실행
     window.addEventListener("DOMContentLoaded", () => {
       lucide.createIcons();
