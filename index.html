@@ -37,23 +37,22 @@
 
     <!-- 상단 헤더 -->
     <header class="bg-indigo-950 text-white px-4 sm:px-6 py-3 sticky top-0 z-30 shadow-md">
+      <!-- 1층 (윗줄): 서비스명 좌측, 폰트 조절 & 동기화 우측 -->
       <div class="flex items-center justify-between mb-2">
         <div class="flex items-center space-x-2">
           <i data-lucide="book-open" class="w-5 h-5 text-amber-400"></i>
           <span class="text-[0.8em] tracking-wider text-indigo-200 font-medium">부부묵상 365</span>
         </div>
-        <!-- 전체 글자 크기 조절 버튼 -->
-       <div class="flex items-center space-x-1 bg-indigo-900/60 rounded-lg px-2 py-0.5 border border-indigo-700/50">
+        <div class="flex items-center space-x-1 bg-indigo-900/60 rounded-lg px-2 py-0.5 border border-indigo-700/50">
           <button id="btn-font-dec" class="text-[0.75em] text-indigo-300 hover:text-white px-1.5 py-0.5">가-</button>
           <span class="text-[0.7em] text-indigo-400">|</span>
           <button id="btn-font-inc" class="text-[0.75em] text-indigo-300 hover:text-white px-1.5 py-0.5 font-bold">가+</button>
-      <!-- 새로 추가할 부분 시작 yiyuno 기능정지
           <span class="text-[0.7em] text-indigo-400">|</span>
           <button onclick="forceRefreshData()" title="최신 데이터 즉시 동기화" class="text-[0.8em] text-amber-300 hover:text-white px-1 active:scale-90 transition-all">🔄</button>
-      새로 추가할 부분 끝 -->
         </div>
-        
-      <!-- 포션 선택 셀렉터 & 이전/다음 버튼 -->
+      </div>
+
+      <!-- 2층 (아랫줄): 포션 선택 박스 (가운데 정렬) -->
       <div class="flex items-center justify-between bg-indigo-900/40 rounded-xl p-2 sm:p-3 border border-indigo-800/80">
         <button onclick="prevWeek()" class="p-1 hover:bg-indigo-800 rounded-lg text-indigo-300 active:scale-95 transition-all">
           <i data-lucide="chevron-left" class="w-5 h-5"></i>
@@ -69,7 +68,7 @@
           <i data-lucide="chevron-right" class="w-5 h-5"></i>
         </button>
       </div>
-    </header>
+    </header>   
 
     <!-- 스크롤 탭 바 -->
     <nav class="bg-white border-b border-slate-200 sticky top-[108px] z-20 flex overflow-x-auto no-scrollbar px-3 sm:px-6 py-2 shadow-sm gap-2">
