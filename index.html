@@ -47,10 +47,10 @@
           <button id="btn-font-dec" class="text-[0.75em] text-indigo-300 hover:text-white px-1.5 py-0.5">가-</button>
           <span class="text-[0.7em] text-indigo-400">|</span>
           <button id="btn-font-inc" class="text-[0.75em] text-indigo-300 hover:text-white px-1.5 py-0.5 font-bold">가+</button>
-          <!-- 새로 추가할 부분 시작 -->
+      <!-- 새로 추가할 부분 시작 yiyuno 기능정지
           <span class="text-[0.7em] text-indigo-400">|</span>
           <button onclick="forceRefreshData()" title="최신 데이터 즉시 동기화" class="text-[0.8em] text-amber-300 hover:text-white px-1 active:scale-90 transition-all">🔄</button>
-          <!-- 새로 추가할 부분 끝 -->
+      새로 추가할 부분 끝 -->
         </div>
         
       <!-- 포션 선택 셀렉터 & 이전/다음 버튼 -->
@@ -425,40 +425,6 @@
       }
     });
 
-// ============================================
-    // 관리자용: 구글 시트 최신 데이터 강제 동기화 함수
-    // ============================================
-    async function forceRefreshData() {
-      // 1. 내 폰 주머니(브라우저 캐시)에 보관된 예전 데이터를 삭제
-      localStorage.removeItem("bubu365_torah_cache");
-
-      // 2. 화면 상단에 로딩 중임을 표시
-      const headerDate = document.getElementById('header-date');
-      const originalDateText = headerDate ? headerDate.innerText : '';
-      if (headerDate) headerDate.innerText = "구글 시트에서 최신 데이터 가져오는 중...";
-
-      try {
-        // 3. Vercel 캐시도 건너뛰고 구글에서 직접 긁어오도록 호출 (?refresh=true)
-        const response = await fetch("/api/torah?refresh=true");
-        const freshData = await response.json();
-
-        if (freshData && freshData.length > 0) {
-          torahDatabase = freshData;
-          // 새로 받아온 따끈따끈한 말씀을 다시 주머니에 저장
-          localStorage.setItem("bubu365_torah_cache", JSON.stringify(freshData));
-          
-          // 화면 즉시 새로고침
-          renderCurrentWeek();
-          alert("✅ 구글 스프레드시트의 최신 내용으로 즉시 갱신되었습니다!");
-        } else {
-          alert("데이터가 비어 있습니다.");
-        }
-      } catch (err) {
-        console.error("강제 새로고침 실패:", err);
-        alert("갱신 실패: 인터넷 연결이나 배포 상태를 확인해 주세요.");
-        if (headerDate) headerDate.innerText = originalDateText;
-      }
-    }
     
     // 공유 기능 (Web Share API)
     async function sharePortion() {
