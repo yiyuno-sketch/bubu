@@ -1,4 +1,13 @@
 export default async function handler(req, res) {
+  // 1. 캐시 방지 헤더 설정 (브라우저 및 Vercel 서버 캐시 완전 무효화)
+  res.setHeader(
+    'Cache-Control',
+    'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0'
+  );
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  // 구글 시트 데이터 가져오는 기존 로직...
+
   // 내 구글 앱스 스크립트 주소
   const GOOGLE_API = "https://script.google.com/macros/s/AKfycbzoVZzGJtSKN6h5hx6pZ2wLFMAonT2HUHejSkhqGpI5SH6sMYfg4mtvlDbGEI6VTKJi/exec";
   
