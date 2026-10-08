@@ -311,8 +311,8 @@
       lucide.createIcons();
     }
 
-    // 요일별(월~토) 리딩 카드 렌더링
-    function updateDailyReadingView() {
+    // 요일별(월~토) 리딩 카드 렌더링 (yi 변경 메모됨)
+   function updateDailyReadingView() {
       const data = torahDatabase[currentWeekIndex];
       if (!data) return;
 
@@ -324,11 +324,13 @@
         }
       });
 
-      // 새로 추가된 스프레드시트 컬럼 (day1_ref, day1_text ...) 직접 참조
       const dayNum = selectedDayIndex + 1;
       const ref = data[`day${dayNum}_ref`] || (selectedDayIndex === 5 ? (data.torah_ref || '') : data.torah_ref || '');
       const text = data[`day${dayNum}_text`] || data.torah_text || '';
       const dayLabel = data[`day${dayNum}_day`] || ['월', '화', '수', '목', '금', '토'][selectedDayIndex];
+
+      // 화면에 보여줄 3줄 요약 미리보기 텍스트 (태그 제거 및 150자 제한)
+      const previewText = text ? text.replace(/<[^>]*>?/gm, '').substring(0, 150) + '...' : '해당 요일의 본문 내용이 등록되어 있지 않습니다.';
 
       const card = document.getElementById('daily-reading-card');
       card.innerHTML = `
@@ -337,7 +339,7 @@
             <span class="text-[0.75em] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2.5 py-0.5 rounded-full">
               ${DAY_NAMES[selectedDayIndex]} (${dayLabel}) • 토라 리딩
             </span>
-            <button onclick="openModal('${DAY_NAMES[selectedDayIndex]} 본문', '${escapeHtml(ref)}', '${escapeHtml(text)}')" 
+            <button onclick="openDailyModal()" 
                     class="text-[0.75em] text-indigo-600 hover:text-indigo-800 font-bold flex items-center gap-1 bg-indigo-50/80 px-2 py-1 rounded-lg">
               <span>전문 읽기</span>
               <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i>
@@ -347,11 +349,11 @@
           <div>
             <div class="text-[1.05em] font-bold text-slate-800">${ref || '장절 정보 없음'}</div>
             <p class="text-slate-600 text-[0.85em] line-clamp-3 mt-1.5 scripture-font leading-relaxed">
-              ${text ? text.substring(0, 150) + '...' : '해당 요일의 본문 내용이 등록되어 있지 않습니다. 스프레드시트의 day' + dayNum + '_text 열을 확인해 주세요.'}
+              ${previewText}
             </p>
           </div>
 
-          <button onclick="openModal('${DAY_NAMES[selectedDayIndex]} 본문', '${escapeHtml(ref)}', '${escapeHtml(text)}')" 
+          <button onclick="openDailyModal()" 
                   class="w-full bg-slate-100 hover:bg-indigo-50 text-indigo-900 border border-slate-200 hover:border-indigo-300 py-2.5 rounded-xl text-[0.8em] font-semibold flex items-center justify-center gap-1.5 transition-all">
             <i data-lucide="book-open" class="w-4 h-4 text-indigo-600"></i>
             <span>오늘의 본문 전문 열기</span>
@@ -379,12 +381,28 @@
       }
     }
 
+// [새로 추가] 요일별 본문 전용 안전한 모달 열기 함수
+    function openDailyModal() {
+      const data = torahDatabase[currentWeekIndex];
+      if (!data) return;
+
+      const dayNum = selectedDayIndex + 1;
+      const ref = data[`day${dayNum}_ref`] || (selectedDayIndex === 5 ? (data.torah_ref || '') : data.torah_ref || '');
+      const text = data[`day${dayNum}_text`] || data.torah_text || '등록된 본문 내용이 없습니다.';
+
+      document.getElementById('modal-category').innerText = `${DAY_NAMES[selectedDayIndex]} 본문`;
+      document.getElementById('modal-title').innerText = ref || '성경 장절';
+      document.getElementById('modal-content').innerText = text;
+      document.getElementById('scripture-modal').classList.remove('hidden');
+    }
+
     function openModal(category, title, text) {
       document.getElementById('modal-category').innerText = category;
       document.getElementById('modal-title').innerText = title;
       document.getElementById('modal-content').innerText = text || '등록된 본문 내용이 없습니다.';
       document.getElementById('scripture-modal').classList.remove('hidden');
     }
+    
     function closeScriptureModal() {
       document.getElementById('scripture-modal').classList.add('hidden');
     }
