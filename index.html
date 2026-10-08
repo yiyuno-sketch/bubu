@@ -290,9 +290,23 @@
         <div class="text-slate-700 whitespace-pre-line leading-relaxed">${data.symbols || '등록된 상징 정보가 없습니다.'}</div>
       `;
 
+// 원어 사전 탭 안전 렌더링
       const dictList = document.getElementById('dictionary-list');
-      if (Array.isArray(data.dictionary_json) && data.dictionary_json.length > 0) {
-        dictList.innerHTML = data.dictionary_json.map(item => `
+      let dictData = data.dictionary_json;
+
+      // 문자열인 경우 JSON 파싱 시도
+      if (typeof dictData === 'string') {
+        try {
+          dictData = JSON.parse(dictData);
+        } catch (e) {
+          // JSON 형식이 아닌 일반 텍스트 메모인 경우 그대로 표시
+          dictList.innerHTML = `<div class="col-span-full bg-white border border-slate-200 rounded-xl p-4 text-slate-700 whitespace-pre-line text-[0.9em]">${data.dictionary_json}</div>`;
+          return;
+        }
+      }
+
+      if (Array.isArray(dictData) && dictData.length > 0) {
+        dictList.innerHTML = dictData.map(item => `
           <div class="bg-white border border-slate-200 rounded-xl p-3 flex justify-between items-center shadow-sm">
             <div>
               <div class="flex items-center space-x-2">
@@ -305,9 +319,9 @@
           </div>
         `).join('');
       } else {
-        dictList.innerHTML = '<div class="col-span-full text-center py-4 text-slate-400 text-[0.85em]">원어 사전 데이터가 없습니다.</div>';
+        dictList.innerHTML = '<div class="col-span-full text-center py-4 text-slate-400 text-[0.85em]">등록된 원어 사전 데이터가 없습니다.</div>';
       }
-
+      
       lucide.createIcons();
     }
 
