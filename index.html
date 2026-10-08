@@ -25,7 +25,6 @@
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-    /* 글자 크기 조절 시 전체적인 비례 유지 */
     .dynamic-root {
       font-size: var(--app-base-size);
     }
@@ -33,7 +32,7 @@
 </head>
 <body class="bg-slate-100 text-slate-800 flex justify-center min-h-screen">
 
-  <!-- 반응형 래퍼: 모바일에서는 100%, 태블릿 및 PC에서는 적정 폭(최대 768px)으로 편안하게 가독성 확보 -->
+  <!-- 반응형 레이아웃: 모바일 100%, 태블릿/PC는 max-w-3xl 가독성 유지 -->
   <div class="dynamic-root w-full max-w-3xl bg-white min-h-screen flex flex-col shadow-xl relative">
 
     <!-- 상단 헤더 -->
@@ -43,6 +42,7 @@
           <i data-lucide="book-open" class="w-5 h-5 text-amber-400"></i>
           <span class="text-[0.8em] tracking-wider text-indigo-200 font-medium">부부묵상 365</span>
         </div>
+        <!-- 전체 글자 크기 조절 버튼 -->
         <div class="flex items-center space-x-1 bg-indigo-900/60 rounded-lg px-2 py-0.5 border border-indigo-700/50">
           <button id="btn-font-dec" class="text-[0.75em] text-indigo-300 hover:text-white px-1.5 py-0.5">가-</button>
           <span class="text-[0.7em] text-indigo-400">|</span>
@@ -68,7 +68,7 @@
       </div>
     </header>
 
-    <!-- 메인 네비게이션 탭 바 -->
+    <!-- 스크롤 탭 바 -->
     <nav class="bg-white border-b border-slate-200 sticky top-[108px] z-20 flex overflow-x-auto no-scrollbar px-3 sm:px-6 py-2 shadow-sm gap-2">
       <button onclick="switchTab('reading')" id="tab-reading" class="tab-btn active flex-shrink-0 px-4 py-1.5 rounded-full text-[0.85em] font-semibold transition-all bg-indigo-900 text-white">
         리딩 본문 (월~토)
@@ -87,7 +87,7 @@
     <!-- 메인 콘텐츠 영역 -->
     <main id="content-body" class="flex-1 p-4 sm:p-6 pb-28 overflow-y-auto space-y-4">
 
-      <!-- ================= TAB 1: 리딩 본문 (6일 분해) ================= -->
+      <!-- ================= TAB 1: 리딩 본문 (월~토 6일) ================= -->
       <section id="panel-reading" class="tab-panel space-y-4">
         
         <div class="bg-amber-50/70 border border-amber-200/80 rounded-2xl p-4 sm:p-5">
@@ -99,30 +99,29 @@
             <span class="text-[0.75em] font-normal text-amber-700 bg-amber-200/60 px-2 py-0.5 rounded-full">매일 읽기</span>
           </div>
 
-          <!-- 월~토 6일 탭 버튼 -->
-          <div class="grid grid-cols-6 gap-1.5 sm:gap-2 mb-4" id="daily-tab-container">
-            <button onclick="selectReadingDay(0)" class="daily-tab-btn py-2 rounded-xl text-[0.8em] font-semibold border transition-all text-center" data-day="0">월</button>
-            <button onclick="selectReadingDay(1)" class="daily-tab-btn py-2 rounded-xl text-[0.8em] font-semibold border transition-all text-center" data-day="1">화</button>
-            <button onclick="selectReadingDay(2)" class="daily-tab-btn py-2 rounded-xl text-[0.8em] font-semibold border transition-all text-center" data-day="2">수</button>
-            <button onclick="selectReadingDay(3)" class="daily-tab-btn py-2 rounded-xl text-[0.8em] font-semibold border transition-all text-center" data-day="3">목</button>
-            <button onclick="selectReadingDay(4)" class="daily-tab-btn py-2 rounded-xl text-[0.8em] font-semibold border transition-all text-center" data-day="4">금</button>
-            <button onclick="selectReadingDay(5)" class="daily-tab-btn py-2 rounded-xl text-[0.8em] font-semibold border transition-all text-center" data-day="5">토</button>
+          <!-- 월~토 요일 선택 탭 -->
+          <div class="grid grid-cols-6 gap-1.5 sm:gap-2 mb-4">
+            <button onclick="selectReadingDay(0)" class="daily-tab-btn py-2 rounded-xl text-[0.8em] font-semibold border transition-all text-center">월</button>
+            <button onclick="selectReadingDay(1)" class="daily-tab-btn py-2 rounded-xl text-[0.8em] font-semibold border transition-all text-center">화</button>
+            <button onclick="selectReadingDay(2)" class="daily-tab-btn py-2 rounded-xl text-[0.8em] font-semibold border transition-all text-center">수</button>
+            <button onclick="selectReadingDay(3)" class="daily-tab-btn py-2 rounded-xl text-[0.8em] font-semibold border transition-all text-center">목</button>
+            <button onclick="selectReadingDay(4)" class="daily-tab-btn py-2 rounded-xl text-[0.8em] font-semibold border transition-all text-center">금</button>
+            <button onclick="selectReadingDay(5)" class="daily-tab-btn py-2 rounded-xl text-[0.8em] font-semibold border transition-all text-center">토</button>
           </div>
 
-          <!-- 선택된 요일의 본문 카드 영역 -->
+          <!-- 선택된 요일 카드 본문 영역 -->
           <div id="daily-reading-card" class="space-y-3">
             <div class="text-center py-6 text-slate-400 text-[0.85em]">데이터를 불러오고 있습니다...</div>
           </div>
         </div>
 
-        <!-- 주간 전체 본문 요약 카드 -->
+        <!-- 주간 전체 포션 요약 카드 -->
         <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4">
           <div class="text-[0.8em] font-bold text-slate-600 mb-2 flex items-center gap-1.5">
             <i data-lucide="scroll" class="w-3.5 h-3.5 text-slate-500"></i>
-            <span>주간 전체 본문 범위 요약</span>
+            <span>주간 전체 성경 범위 요약</span>
           </div>
           <div id="weekly-overview-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[0.8em]">
-            <!-- 동적 주간 요약 삽입 -->
           </div>
         </div>
       </section>
@@ -130,14 +129,12 @@
       <!-- ================= TAB 2: 핵심 강해 ================= -->
       <section id="panel-exegesis" class="tab-panel hidden space-y-3">
         <div id="exegesis-content" class="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-sm text-[0.9em] leading-relaxed space-y-2">
-          <!-- 동적 강해 내용 삽입 -->
         </div>
       </section>
 
       <!-- ================= TAB 3: 상징 & 묵상 ================= -->
       <section id="panel-symbols" class="tab-panel hidden space-y-3">
         <div id="symbols-content" class="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-sm text-[0.9em] leading-relaxed space-y-2">
-          <!-- 동적 상징 내용 삽입 -->
         </div>
       </section>
 
@@ -147,7 +144,6 @@
           <span class="text-[0.85em] font-bold text-slate-500">주요 히브리어 원어 스트롱코드</span>
         </div>
         <div id="dictionary-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-          <!-- 동적 원어 사전 리스트 삽입 -->
         </div>
       </section>
 
@@ -198,11 +194,10 @@
     const API_URL = "https://script.google.com/macros/s/AKfycbzoVZzGJtSKN6h5hx6pZ2wLFMAonT2HUHejSkhqGpI5SH6sMYfg4mtvlDbGEI6VTKJi/exec";
     let torahDatabase = [];
     let currentWeekIndex = 0;
-    let selectedDayIndex = 0; // 0(월) ~ 5(토)
+    let selectedDayIndex = 0; // 0:월, 1:화, 2:수, 3:목, 4:금, 5:토
 
     const DAY_NAMES = ["월요일 (1일차)", "화요일 (2일차)", "수요일 (3일차)", "목요일 (4일차)", "금요일 (5일차)", "토요일 (6일차)"];
 
-    // 1. 스프레드시트 데이터 불러오기
     async function loadTorahData() {
       try {
         const response = await fetch(API_URL);
@@ -210,8 +205,7 @@
         console.log("데이터 동기화 완료:", torahDatabase);
         
         if (torahDatabase && torahDatabase.length > 0) {
-          // 오늘 요일(월~토) 자동 선택
-          const today = new Date().getDay(); // 0(일), 1(월)... 6(토)
+          const today = new Date().getDay();
           selectedDayIndex = (today >= 1 && today <= 6) ? today - 1 : 0;
           renderCurrentWeek();
         } else {
@@ -225,20 +219,16 @@
       }
     }
 
-    // 2. 현재 선택된 주차 화면 렌더링
     function renderCurrentWeek() {
       const data = torahDatabase[currentWeekIndex];
       if (!data) return;
 
-      // 상단 헤더
       document.getElementById('header-date').innerText = `${data.date_info || ''} (${data.season || ''})`;
       document.getElementById('header-title').innerText = `[${data.week}주차] ${data.title_ko || ''}`;
       document.getElementById('header-hebrew').innerText = data.title_he || '';
 
-      // 요일별 탭 렌더링
       updateDailyReadingView();
 
-      // 주간 전체 요약 카드
       document.getElementById('weekly-overview-list').innerHTML = `
         <div class="bg-white p-2.5 rounded-lg border border-slate-200">
           <span class="font-bold text-indigo-950 block">토라 (파라샤)</span>
@@ -258,7 +248,6 @@
         </div>
       `;
 
-      // 핵심 강해 탭
       document.getElementById('exegesis-content').innerHTML = `
         <div class="border-l-4 border-indigo-700 pl-3 py-1 mb-3">
           <h3 class="font-bold text-indigo-950 text-[1.1em]">${data.title_ko} 종합 강해</h3>
@@ -266,7 +255,6 @@
         <div class="text-slate-700 whitespace-pre-line leading-relaxed">${data.exegesis || '등록된 강해 내용이 없습니다.'}</div>
       `;
 
-      // 상징 & 묵상 탭
       document.getElementById('symbols-content').innerHTML = `
         <div class="border-l-4 border-amber-500 pl-3 py-1 mb-3">
           <h3 class="font-bold text-amber-950 text-[1.1em]">${data.title_ko} 주요 상징 및 절기 의미</h3>
@@ -274,7 +262,6 @@
         <div class="text-slate-700 whitespace-pre-line leading-relaxed">${data.symbols || '등록된 상징 정보가 없습니다.'}</div>
       `;
 
-      // 원어 사전 탭
       const dictList = document.getElementById('dictionary-list');
       if (Array.isArray(data.dictionary_json) && data.dictionary_json.length > 0) {
         dictList.innerHTML = data.dictionary_json.map(item => `
@@ -296,12 +283,11 @@
       lucide.createIcons();
     }
 
-    // 3. 월~토 요일별 리딩 카드 뷰 업데이트
+    // 요일별(월~토) 리딩 카드 렌더링
     function updateDailyReadingView() {
       const data = torahDatabase[currentWeekIndex];
       if (!data) return;
 
-      // 요일 탭 버튼 활성화 스타일 처리
       document.querySelectorAll('.daily-tab-btn').forEach((btn, idx) => {
         if (idx === selectedDayIndex) {
           btn.className = 'daily-tab-btn py-2 rounded-xl text-[0.8em] font-bold border transition-all text-center bg-indigo-900 text-white border-indigo-900 shadow-sm';
@@ -310,31 +296,20 @@
         }
       });
 
-      // 6일 데이터 파싱: daily_readings 배열이 있는 경우 우선 사용, 없으면 기존 필드를 6일로 자동 매핑
-      let dayData = null;
-      if (Array.isArray(data.daily_readings) && data.daily_readings.length > selectedDayIndex) {
-        dayData = data.daily_readings[selectedDayIndex];
-      } else {
-        // 기존 시트 필드를 6일에 맞게 스마트 분배 (폴백 로직)
-        const fallbacks = [
-          { title: "토라 제1독", ref: data.torah_ref_1 || data.torah_ref, text: data.torah_text_1 || data.torah_text, type: "토라(율법서)" },
-          { title: "토라 제2독", ref: data.torah_ref_2 || data.torah_ref, text: data.torah_text_2 || data.torah_text, type: "토라(율법서)" },
-          { title: "토라 제3독", ref: data.torah_ref_3 || data.torah_ref, text: data.torah_text_3 || data.torah_text, type: "토라(율법서)" },
-          { title: "선지서 읽기", ref: data.haftarah_ref, text: data.haftarah_text, type: "하프타라(선지서)" },
-          { title: "신약 성취 읽기", ref: data.brit_ref, text: data.brit_text, type: "브릿하다샤(신약)" },
-          { title: "샤밧 특별 낭독", ref: data.special_ref || "총괄 낭독", text: data.special_text, type: "특별 찬송 및 성경" }
-        ];
-        dayData = fallbacks[selectedDayIndex];
-      }
+      // 새로 추가된 스프레드시트 컬럼 (day1_ref, day1_text ...) 직접 참조
+      const dayNum = selectedDayIndex + 1;
+      const ref = data[`day${dayNum}_ref`] || (selectedDayIndex === 5 ? (data.torah_ref || '') : data.torah_ref || '');
+      const text = data[`day${dayNum}_text`] || data.torah_text || '';
+      const dayLabel = data[`day${dayNum}_day`] || ['월', '화', '수', '목', '금', '토'][selectedDayIndex];
 
       const card = document.getElementById('daily-reading-card');
       card.innerHTML = `
         <div class="bg-white p-4 rounded-xl border border-amber-200/90 shadow-sm space-y-3">
           <div class="flex items-center justify-between">
             <span class="text-[0.75em] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2.5 py-0.5 rounded-full">
-              ${DAY_NAMES[selectedDayIndex]} • ${dayData.type || '성경 본문'}
+              ${DAY_NAMES[selectedDayIndex]} (${dayLabel}) • 토라 리딩
             </span>
-            <button onclick="openModal('${dayData.type || '성경 본문'}', '${escapeHtml(dayData.ref)}', '${escapeHtml(dayData.text)}')" 
+            <button onclick="openModal('${DAY_NAMES[selectedDayIndex]} 본문', '${escapeHtml(ref)}', '${escapeHtml(text)}')" 
                     class="text-[0.75em] text-indigo-600 hover:text-indigo-800 font-bold flex items-center gap-1 bg-indigo-50/80 px-2 py-1 rounded-lg">
               <span>전문 읽기</span>
               <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i>
@@ -342,13 +317,13 @@
           </div>
           
           <div>
-            <div class="text-[1.05em] font-bold text-slate-800">${dayData.ref || '장절 정보 없음'}</div>
+            <div class="text-[1.05em] font-bold text-slate-800">${ref || '장절 정보 없음'}</div>
             <p class="text-slate-600 text-[0.85em] line-clamp-3 mt-1.5 scripture-font leading-relaxed">
-              ${dayData.text ? dayData.text.substring(0, 150) + '...' : '등록된 본문 내용이 없습니다.'}
+              ${text ? text.substring(0, 150) + '...' : '해당 요일의 본문 내용이 등록되어 있지 않습니다. 스프레드시트의 day' + dayNum + '_text 열을 확인해 주세요.'}
             </p>
           </div>
 
-          <button onclick="openModal('${dayData.type || '성경 본문'}', '${escapeHtml(dayData.ref)}', '${escapeHtml(dayData.text)}')" 
+          <button onclick="openModal('${DAY_NAMES[selectedDayIndex]} 본문', '${escapeHtml(ref)}', '${escapeHtml(text)}')" 
                   class="w-full bg-slate-100 hover:bg-indigo-50 text-indigo-900 border border-slate-200 hover:border-indigo-300 py-2.5 rounded-xl text-[0.8em] font-semibold flex items-center justify-center gap-1.5 transition-all">
             <i data-lucide="book-open" class="w-4 h-4 text-indigo-600"></i>
             <span>오늘의 본문 전문 열기</span>
@@ -363,7 +338,6 @@
       updateDailyReadingView();
     }
 
-    // 주차 이동
     function prevWeek() {
       if (currentWeekIndex > 0) {
         currentWeekIndex--;
@@ -377,7 +351,6 @@
       }
     }
 
-    // 모달 제어
     function openModal(category, title, text) {
       document.getElementById('modal-category').innerText = category;
       document.getElementById('modal-title').innerText = title;
@@ -388,7 +361,6 @@
       document.getElementById('scripture-modal').classList.add('hidden');
     }
 
-    // 메인 네비게이션 탭 전환
     function switchTab(tabId) {
       document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
       document.getElementById('panel-' + tabId).classList.remove('hidden');
@@ -409,9 +381,7 @@
       return String(str).replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, '\\n');
     }
 
-    // ============================================
-    // 전체 글자 크기 조절 (CSS 변수 --app-base-size 제어)
-    // ============================================
+    // 전체 글자 크기 조절
     let currentBaseSize = 14;
     document.getElementById('btn-font-inc').addEventListener('click', () => {
       if (currentBaseSize < 20) {
@@ -426,9 +396,7 @@
       }
     });
 
-    // ============================================
-    // 포션 나눔: 시스템 전체 공유창 호출 (Web Share API)
-    // ============================================
+    // 공유 기능 (Web Share API)
     async function sharePortion() {
       const titleText = document.getElementById('header-title') ? document.getElementById('header-title').innerText : '토라포션 365';
       const hebrewText = document.getElementById('header-hebrew') ? document.getElementById('header-hebrew').innerText : '';
