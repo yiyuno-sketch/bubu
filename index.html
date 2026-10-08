@@ -193,7 +193,9 @@
   </div>
 
   <script>
-    const API_URL = "/api/torah";
+    // 구글 스프레드시트 실시간 직통 연결 설정
+    const SPREADSHEET_ID = "14G2w2gfA0doa5ExvTYhqP1FDnpAuX4_eyaDj7IzdoqI";
+    const SHEET_NAME = encodeURIComponent("TorahData");
 
     let torahDatabase = [];
     let currentWeekIndex = 0;
@@ -201,46 +203,62 @@
 
     const DAY_NAMES = ["월요일 (1일차)", "화요일 (2일차)", "수요일 (3일차)", "목요일 (4일차)", "금요일 (5일차)", "토요일 (6일차)"];
 
-// 스프레드시트 데이터 불러오기 (초고속 캐싱 적용 버전)
+    // 구글 스프레드시트 직통 로딩 함수
     async function loadTorahData() {
-      // [1단계] 내 스마트폰 주머니(로컬 저장소)에 저장된 말씀이 있는지 먼저 확인
+      // [1단계] 로컬 캐시가 있으면 0.05초 만에 화면 즉시 렌더링
       const cachedData = localStorage.getItem("bubu365_torah_cache");
-      
       if (cachedData) {
         try {
           torahDatabase = JSON.parse(cachedData);
-          // 오늘 요일(월~토) 맞추기
           const today = new Date().getDay();
           selectedDayIndex = (today >= 1 && today <= 6) ? today - 1 : 0;
-          // 구글 창고를 기다리지 않고 0.1초 만에 화면에 바로 띄웁니다!
           renderCurrentWeek();
         } catch (e) {
           console.error("캐시 데이터 읽기 실패:", e);
         }
       }
 
-      // [2단계] 화면은 이미 떠 있는 상태에서, 뒤로 조용히 구글 창고에 가서 새 내용이 있는지 확인
+      // [2단계] 구글 스프레드시트 원본에서 최신 데이터 직접 가져오기
       try {
-        const response = await fetch(API_URL);
-        const freshData = await response.json();
+        const directUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}&tq=select%20*&_t=${Date.now()}`;
+        const response = await fetch(directUrl);
+        const rawText = await response.text();
+
+        // 구글 Viz API의 텍스트 래퍼 제거 후 순수 JSON 파싱
+        const jsonString = rawText.substring(rawText.indexOf('{'), rawText.lastIndexOf('}') + 1);
+        const vizData = JSON.parse(jsonString);
+
+        // 시트 1행의 헤더 이름 목록 추출 (열 순서가 바뀌어도 안전)
+        const headers = vizData.table.cols.map(col => col.label ? col.label.trim() : '');
+
+        // 헤더 이름을 키(Key)로 하는 데이터 객체 배열로 변환
+        const freshData = vizData.table.rows.map(row => {
+          const item = {};
+          if (row.c) {
+            row.c.forEach((cell, idx) => {
+              const headerName = headers[idx];
+              if (headerName) {
+                item[headerName] = cell && cell.v !== null && cell.v !== undefined ? (cell.f || cell.v) : '';
+              }
+            });
+          }
+          return item;
+        }).filter(item => item.week && String(item.week).trim() !== ''); // 빈 행 및 삭제된 행 자동 제외
 
         if (freshData && freshData.length > 0) {
           torahDatabase = freshData;
-          // 새로 받아온 따끈따끈한 말씀을 주머니에 갱신 저장
           localStorage.setItem("bubu365_torah_cache", JSON.stringify(freshData));
           
           const today = new Date().getDay();
           selectedDayIndex = (today >= 1 && today <= 6) ? today - 1 : 0;
-          // 최신 내용으로 화면을 조용히 새로고침
           renderCurrentWeek();
         }
       } catch (error) {
-        console.error("구글 데이터 동기화 실패:", error);
-        // 만약 주머니에도 없고 구글 통신도 실패했다면 에러 표시
+        console.error("구글 데이터 직통 동기화 실패:", error);
         if (!cachedData) {
           const card = document.getElementById('daily-reading-card');
           if (card) {
-            card.innerHTML = '<div class="text-center py-4 text-red-500 text-[0.85em]">데이터를 가져오지 못했습니다. 네트워크를 확인해 주세요.</div>';
+            card.innerHTML = '<div class="text-center py-4 text-red-500 text-[0.85em]">데이터를 가져오지 못했습니다. 스프레드시트 공유 권한을 확인해 주세요.</div>';
           }
         }
       }
@@ -276,32 +294,32 @@
         </div>
       `;
 
+      // 핵심 강해 (M열) 렌더링
       document.getElementById('exegesis-content').innerHTML = `
         <div class="border-l-4 border-indigo-700 pl-3 py-1 mb-3">
-          <h3 class="font-bold text-indigo-950 text-[1.1em]">${data.title_ko} 종합 강해</h3>
+          <h3 class="font-bold text-indigo-950 text-[1.1em]">${data.title_ko || ''} 종합 강해</h3>
         </div>
         <div class="text-slate-700 whitespace-pre-line leading-relaxed">${data.exegesis || '등록된 강해 내용이 없습니다.'}</div>
       `;
 
+      // 상징 & 묵상 (N열) 렌더링
       document.getElementById('symbols-content').innerHTML = `
         <div class="border-l-4 border-amber-500 pl-3 py-1 mb-3">
-          <h3 class="font-bold text-amber-950 text-[1.1em]">${data.title_ko} 주요 상징 및 절기 의미</h3>
+          <h3 class="font-bold text-amber-950 text-[1.1em]">${data.title_ko || ''} 주요 상징 및 절기 의미</h3>
         </div>
         <div class="text-slate-700 whitespace-pre-line leading-relaxed">${data.symbols || '등록된 상징 정보가 없습니다.'}</div>
       `;
 
-// 원어 사전 탭 안전 렌더링
+      // 원어 사전 (O열) 렌더링 (파싱 에러 시에도 return하지 않고 안전 처리)
       const dictList = document.getElementById('dictionary-list');
       let dictData = data.dictionary_json;
 
-      // 문자열인 경우 JSON 파싱 시도
-      if (typeof dictData === 'string') {
+      if (typeof dictData === 'string' && dictData.trim() !== '') {
         try {
           dictData = JSON.parse(dictData);
         } catch (e) {
-          // JSON 형식이 아닌 일반 텍스트 메모인 경우 그대로 표시
           dictList.innerHTML = `<div class="col-span-full bg-white border border-slate-200 rounded-xl p-4 text-slate-700 whitespace-pre-line text-[0.9em]">${data.dictionary_json}</div>`;
-          return;
+          dictData = null;
         }
       }
 
@@ -318,15 +336,15 @@
             <span class="hebrew-text text-[1.3em] text-slate-700">${item.word || ''}</span>
           </div>
         `).join('');
-      } else {
+      } else if (dictData !== null) {
         dictList.innerHTML = '<div class="col-span-full text-center py-4 text-slate-400 text-[0.85em]">등록된 원어 사전 데이터가 없습니다.</div>';
       }
       
       lucide.createIcons();
     }
 
-    // 요일별(월~토) 리딩 카드 렌더링 (yi 변경 메모됨)
-   function updateDailyReadingView() {
+    // 요일별(월~토) 리딩 카드 렌더링
+    function updateDailyReadingView() {
       const data = torahDatabase[currentWeekIndex];
       if (!data) return;
 
@@ -343,7 +361,6 @@
       const text = data[`day${dayNum}_text`] || data.torah_text || '';
       const dayLabel = data[`day${dayNum}_day`] || ['월', '화', '수', '목', '금', '토'][selectedDayIndex];
 
-      // 화면에 보여줄 3줄 요약 미리보기 텍스트 (태그 제거 및 150자 제한)
       const previewText = text ? text.replace(/<[^>]*>?/gm, '').substring(0, 150) + '...' : '해당 요일의 본문 내용이 등록되어 있지 않습니다.';
 
       const card = document.getElementById('daily-reading-card');
@@ -395,7 +412,6 @@
       }
     }
 
-// [새로 추가] 요일별 본문 전용 안전한 모달 열기 함수
     function openDailyModal() {
       const data = torahDatabase[currentWeekIndex];
       if (!data) return;
@@ -456,42 +472,18 @@
       }
     });
 
-// ============================================
-// 관리자용: 구글 시트 최신 데이터 강제 동기화 함수
-// ============================================
+    // 구글 시트 최신 데이터 즉시 강제 동기화
     async function forceRefreshData() {
-      // 1. 내 폰 주머니(브라우저 캐시)에 보관된 예전 데이터를 삭제
       localStorage.removeItem("bubu365_torah_cache");
 
-      // 2. 화면 상단에 로딩 중임을 표시
       const headerDate = document.getElementById('header-date');
       const originalDateText = headerDate ? headerDate.innerText : '';
       if (headerDate) headerDate.innerText = "구글 시트에서 최신 데이터 가져오는 중...";
 
-      try {
-        // 3. Vercel 캐시도 건너뛰고 구글에서 직접 긁어오도록 호출 (?refresh=true)
-        const response = await fetch("/api/torah?refresh=true");
-        const freshData = await response.json();
-
-        if (freshData && freshData.length > 0) {
-          torahDatabase = freshData;
-          // 새로 받아온 따끈따끈한 말씀을 다시 주머니에 저장
-          localStorage.setItem("bubu365_torah_cache", JSON.stringify(freshData));
-          
-          // 화면 즉시 새로고침
-          renderCurrentWeek();
-          alert("✅ 구글 스프레드시트의 최신 내용으로 즉시 갱신되었습니다!");
-        } else {
-          alert("데이터가 비어 있습니다.");
-        }
-      } catch (err) {
-        console.error("강제 새로고침 실패:", err);
-        alert("갱신 실패: 인터넷 연결이나 배포 상태를 확인해 주세요.");
-        if (headerDate) headerDate.innerText = originalDateText;
-      }
+      await loadTorahData();
+      alert("✅ 구글 스프레드시트의 최신 내용으로 즉시 갱신되었습니다!");
     }
 
-    
     // 공유 기능 (Web Share API)
     async function sharePortion() {
       const titleText = document.getElementById('header-title') ? document.getElementById('header-title').innerText : '토라포션 365';
