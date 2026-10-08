@@ -1,30 +1,22 @@
 export default async function handler(req, res) {
-  // 1. 캐시 방지 헤더 설정 (브라우저 및 Vercel 서버 캐시 완전 무효화)
+  // 브라우저 및 프록시 캐시 완전 차단
   res.setHeader(
     'Cache-Control',
     'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0'
   );
   res.setHeader('Pragma', 'no-cache');
   res.setHeader('Expires', '0');
-  // 구글 시트 데이터 가져오는 기존 로직...
 
   // 내 구글 앱스 스크립트 주소
   const GOOGLE_API = "https://script.google.com/macros/s/AKfycbzoVZzGJtSKN6h5hx6pZ2wLFMAonT2HUHejSkhqGpI5SH6sMYfg4mtvlDbGEI6VTKJi/exec";
-  
-  // 관리자가 강제 새로고침 버튼을 눌렀는지 확인 (?refresh=true 신호)
-  const isForceRefresh = req.query.refresh === 'true';
 
   try {
-    const response = await fetch(GOOGLE_API);
+    // 주소 뒤에 현재 시간(Date.now())을 붙여 구글 서버가 무조건 실시간 최신 시트를 읽게 만듭니다.
+    const freshUrl = `${GOOGLE_API}?_t=${Date.now()}`;
+    const response = await fetch(freshUrl, {
+      cache: 'no-store'
+    });
     const data = await response.json();
-
-    if (isForceRefresh) {
-      // [관리자 확인 모드]: Vercel 캐시를 완전히 끄고 방금 구글에서 긁어온 생생한 새 데이터를 줍니다.
-      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-    } else {
-      // [일반 방문자 모드]: 1시간 동안 Vercel 고속 메모리에 저장해두고 0.05초 만에 빛의 속도로 줍니다.
-      res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate');
-    }
 
     res.status(200).json(data);
   } catch (error) {
