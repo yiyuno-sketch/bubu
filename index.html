@@ -192,10 +192,9 @@
 
   </div>
 
-  <script>
-    // 구글 스프레드시트 실시간 연결 설정
-    const SPREADSHEET_ID = "14G2w2gfA0doa5ExvTYhqP1FDnpAuX4_eyaDj7IzdoqI";
-    const SHEET_NAME = encodeURIComponent("TorahData");
+<script>
+    // 새로 배포한 Google Apps Script(GAS) 웹 앱 URL
+    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyixC3pyDsX4WXrJijIfecl2huUIzC-XQ7Cvv01xiroQu4Q-Dt30AMgGgNGxpxhnG7_/exec";
 
     let torahDatabase = [];
     let currentWeekIndex = 0;
@@ -203,44 +202,22 @@
 
     const DAY_NAMES = ["월요일 (1일차)", "화요일 (2일차)", "수요일 (3일차)", "목요일 (4일차)", "금요일 (5일차)", "토요일 (6일차)"];
 
+    // 텍스트 앞뒤 빈 줄 및 선행 공백 정리 함수 (첫 줄부터 온전히 보이도록 처리)
     function cleanText(txt) {
       if (!txt) return '';
       return String(txt).replace(/^\s+/, '').trim();
     }
 
-    // 캐시 없이 구글 스프레드시트 원본을 항상 직접 호출하는 로딩 함수
+    // Google Apps Script에서 최신 JSON 데이터를 직접 받아오는 함수
     async function loadTorahData() {
       const headerDate = document.getElementById('header-date');
       if (headerDate) headerDate.innerText = "데이터 불러오는 중...";
 
       try {
-        const directUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}&tq=select%20*&_t=${Date.now()}`;
-        const response = await fetch(directUrl, {
-          cache: "no-store",
-          headers: {
-            "Pragma": "no-cache",
-            "Cache-Control": "no-cache"
-          }
-        });
-        const rawText = await response.text();
-
-        const jsonString = rawText.substring(rawText.indexOf('{'), rawText.lastIndexOf('}') + 1);
-        const vizData = JSON.parse(jsonString);
-
-        const headers = vizData.table.cols.map(col => col.label ? col.label.trim() : '');
-
-        const freshData = vizData.table.rows.map(row => {
-          const item = {};
-          if (row.c) {
-            row.c.forEach((cell, idx) => {
-              const headerName = headers[idx];
-              if (headerName) {
-                item[headerName] = cell && cell.v !== null && cell.v !== undefined ? (cell.f || cell.v) : '';
-              }
-            });
-          }
-          return item;
-        }).filter(item => item.week && String(item.week).trim() !== '');
+        // 캐시 방지 파라미터 적용
+        const fetchUrl = `${GAS_API_URL}?nocache=1&_t=${Date.now()}`;
+        const response = await fetch(fetchUrl);
+        const freshData = await response.json();
 
         if (freshData && freshData.length > 0) {
           torahDatabase = freshData;
@@ -253,7 +230,7 @@
         console.error("구글 데이터 동기화 실패:", error);
         const card = document.getElementById('daily-reading-card');
         if (card) {
-          card.innerHTML = '<div class="text-center py-4 text-red-500 text-[0.85em]">데이터를 가져오지 못했습니다. 스프레드시트 공유 권한을 확인해 주세요.</div>';
+          card.innerHTML = '<div class="text-center py-4 text-red-500 text-[0.85em]">데이터를 가져오지 못했습니다. 배포 권한("모든 사용자")을 확인해 주세요.</div>';
         }
       }
     }
@@ -336,6 +313,7 @@
       lucide.createIcons();
     }
 
+    // 요일별(월~토) 리딩 카드 렌더링
     function updateDailyReadingView() {
       const data = torahDatabase[currentWeekIndex];
       if (!data) return;
@@ -405,6 +383,7 @@
       }
     }
 
+    // 전문 모달 열기 (G2 셀 본문 맨 첫 줄부터 표시)
     function openDailyModal() {
       const data = torahDatabase[currentWeekIndex];
       if (!data) return;
@@ -419,7 +398,7 @@
       
       const modalContent = document.getElementById('modal-content');
       modalContent.innerText = text;
-      modalContent.scrollTop = 0;
+      modalContent.scrollTop = 0; // 항상 맨 첫 줄부터 표시
 
       document.getElementById('scripture-modal').classList.remove('hidden');
     }
@@ -502,6 +481,6 @@
       lucide.createIcons();
       loadTorahData();
     });
-  </script>
+  </script> 
 </body>
 </html>
