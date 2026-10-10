@@ -48,7 +48,7 @@
           <span class="text-[0.7em] text-indigo-400">|</span>
           <button id="btn-font-inc" class="text-[0.75em] text-indigo-300 hover:text-white px-1.5 py-0.5 font-bold">가+</button>
           <span class="text-[0.7em] text-indigo-400">|</span>
-          <button onclick="forceRefreshData()" title="최신 데이터 즉시 동기화" class="text-[0.8em] text-amber-300 hover:text-white px-1 active:scale-90 transition-all">🔄</button>
+          <button onclick="loadTorahData()" title="최신 데이터 즉시 동기화" class="text-[0.8em] text-amber-300 hover:text-white px-1 active:scale-90 transition-all">🔄</button>
         </div>
       </div>
 
@@ -203,28 +203,16 @@
 
     const DAY_NAMES = ["월요일 (1일차)", "화요일 (2일차)", "수요일 (3일차)", "목요일 (4일차)", "금요일 (5일차)", "토요일 (6일차)"];
 
-    // 텍스트 앞뒤 빈 줄 및 선행 공백 정리 함수
     function cleanText(txt) {
       if (!txt) return '';
       return String(txt).replace(/^\s+/, '').trim();
     }
 
-    // 구글 스프레드시트 직통 로딩 함수
+    // 캐시 없이 구글 스프레드시트 원본을 항상 직접 호출하는 로딩 함수
     async function loadTorahData() {
-      // [1단계] 저장된 로컬 캐시가 있으면 대기시간 없이 우선 표시
-      const cachedData = localStorage.getItem("bubu365_torah_cache");
-      if (cachedData) {
-        try {
-          torahDatabase = JSON.parse(cachedData);
-          const today = new Date().getDay();
-          selectedDayIndex = (today >= 1 && today <= 6) ? today - 1 : 0;
-          renderCurrentWeek();
-        } catch (e) {
-          console.error("캐시 데이터 읽기 실패:", e);
-        }
-      }
+      const headerDate = document.getElementById('header-date');
+      if (headerDate) headerDate.innerText = "데이터 불러오는 중...";
 
-      // [2단계] 구글 스프레드시트에서 실시간 최신 데이터 가져오기 (캐시 방지 헤더 적용)
       try {
         const directUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}&tq=select%20*&_t=${Date.now()}`;
         const response = await fetch(directUrl, {
@@ -236,14 +224,11 @@
         });
         const rawText = await response.text();
 
-        // gviz 래퍼 제거 후 순수 JSON 파싱
         const jsonString = rawText.substring(rawText.indexOf('{'), rawText.lastIndexOf('}') + 1);
         const vizData = JSON.parse(jsonString);
 
-        // 시트 헤더 목록 추출
         const headers = vizData.table.cols.map(col => col.label ? col.label.trim() : '');
 
-        // 헤더 매핑 데이터 생성
         const freshData = vizData.table.rows.map(row => {
           const item = {};
           if (row.c) {
@@ -259,20 +244,16 @@
 
         if (freshData && freshData.length > 0) {
           torahDatabase = freshData;
-          localStorage.setItem("bubu365_torah_cache", JSON.stringify(freshData));
           
           const today = new Date().getDay();
           selectedDayIndex = (today >= 1 && today <= 6) ? today - 1 : 0;
-          // 새로고침 시 최신 데이터로 화면 즉각 업데이트
           renderCurrentWeek();
         }
       } catch (error) {
-        console.error("구글 데이터 직통 동기화 실패:", error);
-        if (!cachedData) {
-          const card = document.getElementById('daily-reading-card');
-          if (card) {
-            card.innerHTML = '<div class="text-center py-4 text-red-500 text-[0.85em]">데이터를 가져오지 못했습니다. 스프레드시트 공유 권한을 확인해 주세요.</div>';
-          }
+        console.error("구글 데이터 동기화 실패:", error);
+        const card = document.getElementById('daily-reading-card');
+        if (card) {
+          card.innerHTML = '<div class="text-center py-4 text-red-500 text-[0.85em]">데이터를 가져오지 못했습니다. 스프레드시트 공유 권한을 확인해 주세요.</div>';
         }
       }
     }
@@ -306,7 +287,7 @@
         </div>
       `;
 
-      // 핵심 강해 (M열)
+      // 핵심 강해
       document.getElementById('exegesis-content').innerHTML = `
         <div class="border-l-4 border-indigo-700 pl-3 py-1 mb-3">
           <h3 class="font-bold text-indigo-950 text-[1.1em]">${data.title_ko || ''} 종합 강해</h3>
@@ -314,7 +295,7 @@
         <div class="text-slate-700 whitespace-pre-line leading-relaxed">${cleanText(data.exegesis) || '등록된 강해 내용이 없습니다.'}</div>
       `;
 
-      // 상징 & 묵상 (N열)
+      // 상징 & 묵상
       document.getElementById('symbols-content').innerHTML = `
         <div class="border-l-4 border-amber-500 pl-3 py-1 mb-3">
           <h3 class="font-bold text-amber-950 text-[1.1em]">${data.title_ko || ''} 주요 상징 및 절기 의미</h3>
@@ -322,7 +303,7 @@
         <div class="text-slate-700 whitespace-pre-line leading-relaxed">${cleanText(data.symbols) || '등록된 상징 정보가 없습니다.'}</div>
       `;
 
-      // 원어 사전 (O열)
+      // 원어 사전
       const dictList = document.getElementById('dictionary-list');
       let dictData = data.dictionary_json;
 
@@ -355,7 +336,6 @@
       lucide.createIcons();
     }
 
-    // 요일별 리딩 카드 렌더링
     function updateDailyReadingView() {
       const data = torahDatabase[currentWeekIndex];
       if (!data) return;
@@ -425,7 +405,6 @@
       }
     }
 
-    // 전문 모달 열기 (G2 셀 본문 맨 처음부터 보이도록 처리)
     function openDailyModal() {
       const data = torahDatabase[currentWeekIndex];
       if (!data) return;
@@ -440,7 +419,7 @@
       
       const modalContent = document.getElementById('modal-content');
       modalContent.innerText = text;
-      modalContent.scrollTop = 0; // 항상 맨 첫 줄부터 표시
+      modalContent.scrollTop = 0;
 
       document.getElementById('scripture-modal').classList.remove('hidden');
     }
@@ -489,17 +468,6 @@
         document.documentElement.style.setProperty('--app-base-size', currentBaseSize + 'px');
       }
     });
-
-    // 구글 시트 데이터 즉시 동기화
-    async function forceRefreshData() {
-      localStorage.removeItem("bubu365_torah_cache");
-
-      const headerDate = document.getElementById('header-date');
-      if (headerDate) headerDate.innerText = "구글 시트에서 최신 데이터 가져오는 중...";
-
-      await loadTorahData();
-      alert("✅ 구글 스프레드시트의 최신 내용으로 동기화되었습니다!");
-    }
 
     // 공유 기능
     async function sharePortion() {
