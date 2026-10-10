@@ -174,10 +174,40 @@
       </div>
     </div>
 
+    <!-- ================= 북마크 문서 뷰어 모달 ================= -->
+    <div id="bookmark-modal" class="fixed inset-0 z-50 bg-black/60 hidden flex flex-col justify-end sm:justify-center items-center p-0 sm:p-4">
+      <div class="fixed inset-0" onclick="closeBookmarkModal()"></div>
+      <div class="relative bg-white w-full max-w-3xl rounded-t-3xl sm:rounded-2xl h-[90vh] flex flex-col shadow-2xl overflow-hidden z-10 animate-in slide-in-from-bottom duration-300">
+        <div class="p-3 sm:p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+          <div class="flex items-center space-x-2">
+            <span class="text-[0.75em] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">문서 뷰어</span>
+            <h3 class="font-bold text-slate-900 text-[1em]">북마크 문서</h3>
+          </div>
+          <div class="flex items-center space-x-2">
+            <a href="https://docs.google.com/document/d/1LEpOuZe9ntnN_hjkD_dpiFvFzlNTJiG9GTuyiKNxnz0/edit?tab=t.0" target="_blank" rel="noopener noreferrer" class="text-[0.75em] text-indigo-600 hover:underline flex items-center gap-1 bg-white border border-slate-200 px-2 py-1 rounded-lg">
+              <span>새 창 열기</span>
+              <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+            </a>
+            <button onclick="closeBookmarkModal()" class="p-1.5 hover:bg-slate-200 rounded-full text-slate-500">
+              <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+          </div>
+        </div>
+        <div class="flex-1 w-full bg-slate-100 relative">
+          <iframe id="bookmark-iframe" src="" class="w-full h-full border-0" allow="autoplay"></iframe>
+        </div>
+        <div class="p-3 border-t border-slate-200 bg-slate-50 text-center">
+          <button onclick="closeBookmarkModal()" class="w-full bg-indigo-950 text-white font-semibold py-2.5 rounded-xl text-[0.85em] hover:bg-indigo-900 transition-all">
+            문서 닫기
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- 하단 액션바 -->
     <footer class="bg-white/95 backdrop-blur-sm border-t border-slate-200 p-3 fixed bottom-0 left-0 right-0 max-w-3xl mx-auto flex items-center justify-between z-30 shadow-lg">
-      <button class="flex items-center space-x-1.5 text-[0.8em] text-slate-600 hover:text-indigo-900 font-medium px-3 py-2 rounded-xl hover:bg-slate-100">
-        <i data-lucide="bookmark" class="w-4 h-4"></i>
+      <button onclick="openBookmarkModal()" class="flex items-center space-x-1.5 text-[0.8em] text-slate-600 hover:text-indigo-900 font-medium px-3 py-2 rounded-xl hover:bg-slate-100 active:scale-95 transition-all">
+        <i data-lucide="bookmark" class="w-4 h-4 text-amber-500"></i>
         <span>북마크</span>
       </button>
       <button class="flex items-center space-x-1.5 text-[0.8em] text-slate-600 hover:text-indigo-900 font-medium px-3 py-2 rounded-xl hover:bg-slate-100">
@@ -192,7 +222,7 @@
 
   </div>
 
-<script>
+  <script>
     // 새로 배포한 Google Apps Script(GAS) 웹 앱 URL
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyixC3pyDsX4WXrJijIfecl2huUIzC-XQ7Cvv01xiroQu4Q-Dt30AMgGgNGxpxhnG7_/exec";
 
@@ -202,7 +232,7 @@
 
     const DAY_NAMES = ["월요일 (1일차)", "화요일 (2일차)", "수요일 (3일차)", "목요일 (4일차)", "금요일 (5일차)", "토요일 (6일차)"];
 
-    // 텍스트 앞뒤 빈 줄 및 선행 공백 정리 함수 (첫 줄부터 온전히 보이도록 처리)
+    // 텍스트 앞뒤 빈 줄 및 선행 공백 정리 함수
     function cleanText(txt) {
       if (!txt) return '';
       return String(txt).replace(/^\s+/, '').trim();
@@ -214,7 +244,6 @@
       if (headerDate) headerDate.innerText = "데이터 불러오는 중...";
 
       try {
-        // 캐시 방지 파라미터 적용
         const fetchUrl = `${GAS_API_URL}?nocache=1&_t=${Date.now()}`;
         const response = await fetch(fetchUrl);
         const freshData = await response.json();
@@ -398,7 +427,7 @@
       
       const modalContent = document.getElementById('modal-content');
       modalContent.innerText = text;
-      modalContent.scrollTop = 0; // 항상 맨 첫 줄부터 표시
+      modalContent.scrollTop = 0;
 
       document.getElementById('scripture-modal').classList.remove('hidden');
     }
@@ -416,6 +445,22 @@
     
     function closeScriptureModal() {
       document.getElementById('scripture-modal').classList.add('hidden');
+    }
+
+    // 북마크 전용 구글 독스 모달 열기 / 닫기
+    const BOOKMARK_DOC_URL = "https://docs.google.com/document/d/1LEpOuZe9ntnN_hjkD_dpiFvFzlNTJiG9GTuyiKNxnz0/preview";
+
+    function openBookmarkModal() {
+      const iframe = document.getElementById('bookmark-iframe');
+      if (iframe && iframe.src !== BOOKMARK_DOC_URL) {
+        iframe.src = BOOKMARK_DOC_URL;
+      }
+      document.getElementById('bookmark-modal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeBookmarkModal() {
+      document.getElementById('bookmark-modal').classList.add('hidden');
     }
 
     function switchTab(tabId) {
@@ -481,6 +526,6 @@
       lucide.createIcons();
       loadTorahData();
     });
-  </script> 
+  </script>
 </body>
 </html>
