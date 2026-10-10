@@ -193,7 +193,7 @@
   </div>
 
   <script>
-    // 구글 스프레드시트 실시간 직통 연결 설정
+    // 구글 스프레드시트 실시간 연결 설정
     const SPREADSHEET_ID = "14G2w2gfA0doa5ExvTYhqP1FDnpAuX4_eyaDj7IzdoqI";
     const SHEET_NAME = encodeURIComponent("TorahData");
 
@@ -203,9 +203,15 @@
 
     const DAY_NAMES = ["월요일 (1일차)", "화요일 (2일차)", "수요일 (3일차)", "목요일 (4일차)", "금요일 (5일차)", "토요일 (6일차)"];
 
+    // 텍스트 앞뒤 빈 줄 및 선행 공백 정리 함수
+    function cleanText(txt) {
+      if (!txt) return '';
+      return String(txt).replace(/^\s+/, '').trim();
+    }
+
     // 구글 스프레드시트 직통 로딩 함수
     async function loadTorahData() {
-      // [1단계] 로컬 캐시가 있으면 0.05초 만에 화면 즉시 렌더링
+      // [1단계] 저장된 로컬 캐시가 있으면 대기시간 없이 우선 표시
       const cachedData = localStorage.getItem("bubu365_torah_cache");
       if (cachedData) {
         try {
@@ -218,20 +224,26 @@
         }
       }
 
-      // [2단계] 구글 스프레드시트 원본에서 최신 데이터 직접 가져오기
+      // [2단계] 구글 스프레드시트에서 실시간 최신 데이터 가져오기 (캐시 방지 헤더 적용)
       try {
         const directUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}&tq=select%20*&_t=${Date.now()}`;
-        const response = await fetch(directUrl);
+        const response = await fetch(directUrl, {
+          cache: "no-store",
+          headers: {
+            "Pragma": "no-cache",
+            "Cache-Control": "no-cache"
+          }
+        });
         const rawText = await response.text();
 
-        // 구글 Viz API의 텍스트 래퍼 제거 후 순수 JSON 파싱
+        // gviz 래퍼 제거 후 순수 JSON 파싱
         const jsonString = rawText.substring(rawText.indexOf('{'), rawText.lastIndexOf('}') + 1);
         const vizData = JSON.parse(jsonString);
 
-        // 시트 1행의 헤더 이름 목록 추출 (열 순서가 바뀌어도 안전)
+        // 시트 헤더 목록 추출
         const headers = vizData.table.cols.map(col => col.label ? col.label.trim() : '');
 
-        // 헤더 이름을 키(Key)로 하는 데이터 객체 배열로 변환
+        // 헤더 매핑 데이터 생성
         const freshData = vizData.table.rows.map(row => {
           const item = {};
           if (row.c) {
@@ -243,7 +255,7 @@
             });
           }
           return item;
-        }).filter(item => item.week && String(item.week).trim() !== ''); // 빈 행 및 삭제된 행 자동 제외
+        }).filter(item => item.week && String(item.week).trim() !== '');
 
         if (freshData && freshData.length > 0) {
           torahDatabase = freshData;
@@ -251,6 +263,7 @@
           
           const today = new Date().getDay();
           selectedDayIndex = (today >= 1 && today <= 6) ? today - 1 : 0;
+          // 새로고침 시 최신 데이터로 화면 즉각 업데이트
           renderCurrentWeek();
         }
       } catch (error) {
@@ -262,8 +275,7 @@
           }
         }
       }
-    }   
-    
+    }
 
     function renderCurrentWeek() {
       const data = torahDatabase[currentWeekIndex];
@@ -294,23 +306,23 @@
         </div>
       `;
 
-      // 핵심 강해 (M열) 렌더링
+      // 핵심 강해 (M열)
       document.getElementById('exegesis-content').innerHTML = `
         <div class="border-l-4 border-indigo-700 pl-3 py-1 mb-3">
           <h3 class="font-bold text-indigo-950 text-[1.1em]">${data.title_ko || ''} 종합 강해</h3>
         </div>
-        <div class="text-slate-700 whitespace-pre-line leading-relaxed">${data.exegesis || '등록된 강해 내용이 없습니다.'}</div>
+        <div class="text-slate-700 whitespace-pre-line leading-relaxed">${cleanText(data.exegesis) || '등록된 강해 내용이 없습니다.'}</div>
       `;
 
-      // 상징 & 묵상 (N열) 렌더링
+      // 상징 & 묵상 (N열)
       document.getElementById('symbols-content').innerHTML = `
         <div class="border-l-4 border-amber-500 pl-3 py-1 mb-3">
           <h3 class="font-bold text-amber-950 text-[1.1em]">${data.title_ko || ''} 주요 상징 및 절기 의미</h3>
         </div>
-        <div class="text-slate-700 whitespace-pre-line leading-relaxed">${data.symbols || '등록된 상징 정보가 없습니다.'}</div>
+        <div class="text-slate-700 whitespace-pre-line leading-relaxed">${cleanText(data.symbols) || '등록된 상징 정보가 없습니다.'}</div>
       `;
 
-      // 원어 사전 (O열) 렌더링 (파싱 에러 시에도 return하지 않고 안전 처리)
+      // 원어 사전 (O열)
       const dictList = document.getElementById('dictionary-list');
       let dictData = data.dictionary_json;
 
@@ -343,7 +355,7 @@
       lucide.createIcons();
     }
 
-    // 요일별(월~토) 리딩 카드 렌더링
+    // 요일별 리딩 카드 렌더링
     function updateDailyReadingView() {
       const data = torahDatabase[currentWeekIndex];
       if (!data) return;
@@ -358,7 +370,8 @@
 
       const dayNum = selectedDayIndex + 1;
       const ref = data[`day${dayNum}_ref`] || (selectedDayIndex === 5 ? (data.torah_ref || '') : data.torah_ref || '');
-      const text = data[`day${dayNum}_text`] || data.torah_text || '';
+      const rawText = data[`day${dayNum}_text`] || data.torah_text || '';
+      const text = cleanText(rawText);
       const dayLabel = data[`day${dayNum}_day`] || ['월', '화', '수', '목', '금', '토'][selectedDayIndex];
 
       const previewText = text ? text.replace(/<[^>]*>?/gm, '').substring(0, 150) + '...' : '해당 요일의 본문 내용이 등록되어 있지 않습니다.';
@@ -412,24 +425,34 @@
       }
     }
 
+    // 전문 모달 열기 (G2 셀 본문 맨 처음부터 보이도록 처리)
     function openDailyModal() {
       const data = torahDatabase[currentWeekIndex];
       if (!data) return;
 
       const dayNum = selectedDayIndex + 1;
       const ref = data[`day${dayNum}_ref`] || (selectedDayIndex === 5 ? (data.torah_ref || '') : data.torah_ref || '');
-      const text = data[`day${dayNum}_text`] || data.torah_text || '등록된 본문 내용이 없습니다.';
+      const rawText = data[`day${dayNum}_text`] || data.torah_text || '등록된 본문 내용이 없습니다.';
+      const text = cleanText(rawText);
 
       document.getElementById('modal-category').innerText = `${DAY_NAMES[selectedDayIndex]} 본문`;
       document.getElementById('modal-title').innerText = ref || '성경 장절';
-      document.getElementById('modal-content').innerText = text;
+      
+      const modalContent = document.getElementById('modal-content');
+      modalContent.innerText = text;
+      modalContent.scrollTop = 0; // 항상 맨 첫 줄부터 표시
+
       document.getElementById('scripture-modal').classList.remove('hidden');
     }
 
     function openModal(category, title, text) {
       document.getElementById('modal-category').innerText = category;
       document.getElementById('modal-title').innerText = title;
-      document.getElementById('modal-content').innerText = text || '등록된 본문 내용이 없습니다.';
+      
+      const modalContent = document.getElementById('modal-content');
+      modalContent.innerText = cleanText(text) || '등록된 본문 내용이 없습니다.';
+      modalContent.scrollTop = 0;
+      
       document.getElementById('scripture-modal').classList.remove('hidden');
     }
     
@@ -452,12 +475,7 @@
       }
     }
 
-    function escapeHtml(str) {
-      if (!str) return '';
-      return String(str).replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, '\\n');
-    }
-
-    // 전체 글자 크기 조절
+    // 글자 크기 조절
     let currentBaseSize = 14;
     document.getElementById('btn-font-inc').addEventListener('click', () => {
       if (currentBaseSize < 20) {
@@ -472,19 +490,18 @@
       }
     });
 
-    // 구글 시트 최신 데이터 즉시 강제 동기화
+    // 구글 시트 데이터 즉시 동기화
     async function forceRefreshData() {
       localStorage.removeItem("bubu365_torah_cache");
 
       const headerDate = document.getElementById('header-date');
-      const originalDateText = headerDate ? headerDate.innerText : '';
       if (headerDate) headerDate.innerText = "구글 시트에서 최신 데이터 가져오는 중...";
 
       await loadTorahData();
-      alert("✅ 구글 스프레드시트의 최신 내용으로 즉시 갱신되었습니다!");
+      alert("✅ 구글 스프레드시트의 최신 내용으로 동기화되었습니다!");
     }
 
-    // 공유 기능 (Web Share API)
+    // 공유 기능
     async function sharePortion() {
       const titleText = document.getElementById('header-title') ? document.getElementById('header-title').innerText : '토라포션 365';
       const hebrewText = document.getElementById('header-hebrew') ? document.getElementById('header-hebrew').innerText : '';
