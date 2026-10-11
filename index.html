@@ -73,7 +73,7 @@
     <!-- 스크롤 탭 바 -->
     <nav class="bg-white border-b border-slate-200 sticky top-[108px] z-20 flex overflow-x-auto no-scrollbar px-3 sm:px-6 py-2 shadow-sm gap-2">
       <button onclick="switchTab('reading')" id="tab-reading" class="tab-btn active flex-shrink-0 px-4 py-1.5 rounded-full text-[0.85em] font-semibold transition-all bg-indigo-900 text-white">
-        리딩 본문 (월~토)
+        리딩 본문 (월~일)
       </button>
       <button onclick="switchTab('exegesis')" id="tab-exegesis" class="tab-btn flex-shrink-0 px-4 py-1.5 rounded-full text-[0.85em] font-semibold transition-all bg-slate-100 text-slate-600 hover:bg-slate-200">
         핵심 강해
@@ -89,26 +89,27 @@
     <!-- 메인 콘텐츠 영역 -->
     <main id="content-body" class="flex-1 p-4 sm:p-6 pb-28 overflow-y-auto space-y-4">
 
-      <!-- ================= TAB 1: 리딩 본문 (월~토 6일) ================= -->
+      <!-- ================= TAB 1: 리딩 본문 (월~일 7일) ================= -->
       <section id="panel-reading" class="tab-panel space-y-4">
         
         <div class="bg-amber-50/70 border border-amber-200/80 rounded-2xl p-4 sm:p-5">
           <div class="flex items-center justify-between text-amber-900 font-bold mb-3">
             <div class="flex items-center space-x-2">
               <i data-lucide="calendar" class="w-4 h-4 text-amber-600"></i>
-              <span class="text-[0.95em]">이번 주 성경 읽기 (월~토 6일 리딩)</span>
+              <span class="text-[0.95em]">이번 주 성경 읽기 (월~일 7일 리딩)</span>
             </div>
             <span class="text-[0.75em] font-normal text-amber-700 bg-amber-200/60 px-2 py-0.5 rounded-full">매일 읽기</span>
           </div>
 
-          <!-- 월~토 요일 선택 탭 -->
-          <div class="grid grid-cols-6 gap-1.5 sm:gap-2 mb-4">
+          <!-- 월~일 요일 선택 탭 (7칸 그리드) -->
+          <div class="grid grid-cols-7 gap-1 sm:gap-1.5 mb-4">
             <button onclick="selectReadingDay(0)" class="daily-tab-btn py-2 rounded-xl text-[0.8em] font-semibold border transition-all text-center">월</button>
             <button onclick="selectReadingDay(1)" class="daily-tab-btn py-2 rounded-xl text-[0.8em] font-semibold border transition-all text-center">화</button>
             <button onclick="selectReadingDay(2)" class="daily-tab-btn py-2 rounded-xl text-[0.8em] font-semibold border transition-all text-center">수</button>
             <button onclick="selectReadingDay(3)" class="daily-tab-btn py-2 rounded-xl text-[0.8em] font-semibold border transition-all text-center">목</button>
             <button onclick="selectReadingDay(4)" class="daily-tab-btn py-2 rounded-xl text-[0.8em] font-semibold border transition-all text-center">금</button>
             <button onclick="selectReadingDay(5)" class="daily-tab-btn py-2 rounded-xl text-[0.8em] font-semibold border transition-all text-center">토</button>
+            <button onclick="selectReadingDay(6)" class="daily-tab-btn py-2 rounded-xl text-[0.8em] font-semibold border transition-all text-center">일</button>
           </div>
 
           <!-- 선택된 요일 카드 본문 영역 -->
@@ -208,15 +209,15 @@
     <footer class="bg-white/95 backdrop-blur-sm border-t border-slate-200 p-3 fixed bottom-0 left-0 right-0 max-w-3xl mx-auto flex items-center justify-between z-30 shadow-lg">
       <button onclick="openBookmarkModal()" class="flex items-center space-x-1.5 text-[0.8em] text-slate-600 hover:text-indigo-900 font-medium px-3 py-2 rounded-xl hover:bg-slate-100 active:scale-95 transition-all">
         <i data-lucide="bookmark" class="w-4 h-4 text-amber-500"></i>
-        <span>북마크</span>
+        <span>전체요약</span>
       </button>
       <button class="flex items-center space-x-1.5 text-[0.8em] text-slate-600 hover:text-indigo-900 font-medium px-3 py-2 rounded-xl hover:bg-slate-100">
         <i data-lucide="edit-3" class="w-4 h-4"></i>
-        <span>묵상 메모</span>
+        <span>묵상메모</span>
       </button>
       <button onclick="sharePortion()" class="bg-indigo-900 text-white text-[0.8em] font-semibold px-4 py-2 rounded-xl flex items-center space-x-1.5 shadow-sm active:scale-95 transition-all">
         <i data-lucide="share-2" class="w-4 h-4"></i>
-        <span>포션 나눔</span>
+        <span>포션나눔</span>
       </button>
     </footer>
 
@@ -228,9 +229,18 @@
 
     let torahDatabase = [];
     let currentWeekIndex = 0;
-    let selectedDayIndex = 0; // 0:월, 1:화, 2:수, 3:목, 4:금, 5:토
+    let selectedDayIndex = 0; // 0:월, 1:화, 2:수, 3:목, 4:금, 5:토, 6:일
 
-    const DAY_NAMES = ["월요일 (1일차)", "화요일 (2일차)", "수요일 (3일차)", "목요일 (4일차)", "금요일 (5일차)", "토요일 (6일차)"];
+    // 일요일(7일차) 추가
+    const DAY_NAMES = [
+      "월요일 (1일차)", 
+      "화요일 (2일차)", 
+      "수요일 (3일차)", 
+      "목요일 (4일차)", 
+      "금요일 (5일차)", 
+      "토요일 (6일차)",
+      "일요일 (7일차)"
+    ];
 
     // 텍스트 앞뒤 빈 줄 및 선행 공백 정리 함수
     function cleanText(txt) {
@@ -251,8 +261,9 @@
         if (freshData && freshData.length > 0) {
           torahDatabase = freshData;
           
-          const today = new Date().getDay();
-          selectedDayIndex = (today >= 1 && today <= 6) ? today - 1 : 0;
+          // 오늘 요일 자동 선택: 월(1)~토(6)는 0~5, 일(0)은 6
+          const day = new Date().getDay();
+          selectedDayIndex = (day === 0) ? 6 : day - 1;
           renderCurrentWeek();
         }
       } catch (error) {
@@ -342,7 +353,7 @@
       lucide.createIcons();
     }
 
-    // 요일별(월~토) 리딩 카드 렌더링
+    // 요일별(월~일) 리딩 카드 렌더링
     function updateDailyReadingView() {
       const data = torahDatabase[currentWeekIndex];
       if (!data) return;
@@ -356,10 +367,10 @@
       });
 
       const dayNum = selectedDayIndex + 1;
-      const ref = data[`day${dayNum}_ref`] || (selectedDayIndex === 5 ? (data.torah_ref || '') : data.torah_ref || '');
+      const ref = data[`day${dayNum}_ref`] || (selectedDayIndex >= 5 ? (data.torah_ref || '') : data.torah_ref || '');
       const rawText = data[`day${dayNum}_text`] || data.torah_text || '';
       const text = cleanText(rawText);
-      const dayLabel = data[`day${dayNum}_day`] || ['월', '화', '수', '목', '금', '토'][selectedDayIndex];
+      const dayLabel = data[`day${dayNum}_day`] || ['월', '화', '수', '목', '금', '토', '일'][selectedDayIndex];
 
       const previewText = text ? text.replace(/<[^>]*>?/gm, '').substring(0, 150) + '...' : '해당 요일의 본문 내용이 등록되어 있지 않습니다.';
 
@@ -412,13 +423,13 @@
       }
     }
 
-    // 전문 모달 열기 (G2 셀 본문 맨 첫 줄부터 표시)
+    // 전문 모달 열기
     function openDailyModal() {
       const data = torahDatabase[currentWeekIndex];
       if (!data) return;
 
       const dayNum = selectedDayIndex + 1;
-      const ref = data[`day${dayNum}_ref`] || (selectedDayIndex === 5 ? (data.torah_ref || '') : data.torah_ref || '');
+      const ref = data[`day${dayNum}_ref`] || (selectedDayIndex >= 5 ? (data.torah_ref || '') : data.torah_ref || '');
       const rawText = data[`day${dayNum}_text`] || data.torah_text || '등록된 본문 내용이 없습니다.';
       const text = cleanText(rawText);
 
