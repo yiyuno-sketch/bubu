@@ -122,7 +122,7 @@
         <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4">
           <div class="text-[0.8em] font-bold text-slate-600 mb-2 flex items-center gap-1.5">
             <i data-lucide="scroll" class="w-3.5 h-3.5 text-slate-500"></i>
-            <span>주간 전체 성경 범위 요약(개역개정은 성경책 참조)</span>
+            <span>주간 전체 성경 범위 요약</span>
           </div>
           <div id="weekly-overview-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[0.8em]">
           </div>
@@ -144,7 +144,7 @@
       <!-- ================= TAB 4: 원어 사전 ================= -->
       <section id="panel-dictionary" class="tab-panel hidden space-y-3">
         <div class="flex items-center justify-between pb-1 px-1">
-          <span class="text-[0.85em] font-bold text-slate-500">주요 히브리어 원어 </span>
+          <span class="text-[0.85em] font-bold text-slate-500">주요 히브리어 원어 스트롱코드</span>
         </div>
         <div id="dictionary-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
         </div>
@@ -152,14 +152,14 @@
 
     </main>
 
-    <!-- ================= 성경 전문 읽기 바텀시트 / 모달 ================= -->
+    <!-- ================= 성경 전문 및 이야기 읽기 모달 ================= -->
     <div id="scripture-modal" class="fixed inset-0 z-50 bg-black/60 hidden flex flex-col justify-end items-center">
       <div class="flex-1 w-full" onclick="closeScriptureModal()"></div>
       <div class="bg-white w-full max-w-3xl rounded-t-3xl h-[85vh] flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-bottom duration-300">
         <div class="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
           <div>
-            <span id="modal-category" class="text-[0.75em] font-bold text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded-full">성경 본문</span>
-            <h3 id="modal-title" class="font-bold text-slate-900 text-[1.05em] mt-1">성경 장절</h3>
+            <span id="modal-category" class="text-[0.75em] font-bold text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded-full">본문 읽기</span>
+            <h3 id="modal-title" class="font-bold text-slate-900 text-[1.05em] mt-1">제목</h3>
           </div>
           <button onclick="closeScriptureModal()" class="p-2 hover:bg-slate-200 rounded-full text-slate-500">
             <i data-lucide="x" class="w-5 h-5"></i>
@@ -224,14 +224,13 @@
   </div>
 
   <script>
-    // 새로 배포한 Google Apps Script(GAS) 웹 앱 URL
+    // 구글 앱스 스크립트(GAS) 배포 웹 앱 URL
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyixC3pyDsX4WXrJijIfecl2huUIzC-XQ7Cvv01xiroQu4Q-Dt30AMgGgNGxpxhnG7_/exec";
 
     let torahDatabase = [];
     let currentWeekIndex = 0;
     let selectedDayIndex = 0; // 0:일, 1:월, 2:화, 3:수, 4:목, 5:금, 6:토
 
-    // 일요일이 1일차 시작인 7일 배열
     const DAY_NAMES = [
       "일요일 (1일차)", 
       "월요일 (2일차)", 
@@ -242,13 +241,11 @@
       "토요일 (7일차)"
     ];
 
-    // 텍스트 앞뒤 빈 줄 및 선행 공백 정리 함수
     function cleanText(txt) {
       if (!txt) return '';
       return String(txt).replace(/^\s+/, '').trim();
     }
 
-    // Google Apps Script에서 최신 JSON 데이터를 직접 받아오는 함수
     async function loadTorahData() {
       const headerDate = document.getElementById('header-date');
       if (headerDate) headerDate.innerText = "데이터 불러오는 중...";
@@ -260,8 +257,6 @@
 
         if (freshData && freshData.length > 0) {
           torahDatabase = freshData;
-          
-          // 자바스크립트의 new Date().getDay()는 0(일), 1(월), ..., 6(토)이므로 인덱스와 그대로 1:1 일치
           selectedDayIndex = new Date().getDay();
           renderCurrentWeek();
         }
@@ -284,6 +279,10 @@
 
       updateDailyReadingView();
 
+      // 기존 L열(special_ref)의 내용을 '이야기' 텍스트로 그대로 활용
+      const storyRaw = data.special_ref || data.special_text || data.special || '';
+      const storyPreview = storyRaw ? (storyRaw.length > 30 ? storyRaw.substring(0, 30) + '...' : storyRaw) : '이야기 읽기';
+
       document.getElementById('weekly-overview-list').innerHTML = `
         <div class="bg-white p-2.5 rounded-lg border border-slate-200">
           <span class="font-bold text-indigo-950 block">토라 (파라샤)</span>
@@ -297,13 +296,20 @@
           <span class="font-bold text-indigo-950 block">브릿하다샤 (신약)</span>
           <span class="text-slate-600">${data.brit_ref || '-'}</span>
         </div>
-        <div class="bg-white p-2.5 rounded-lg border border-slate-200">
-          <span class="font-bold text-indigo-950 block">이야기</span>
-          <span class="text-slate-600">${data.special_ref || '절기 찬송'}</span>
+        <!-- 기존 L열(special_ref) 데이터와 연결된 '이야기' 카드 -->
+        <div onclick="openStoryModal()" class="bg-white p-2.5 rounded-lg border border-slate-200 hover:border-amber-400 hover:bg-amber-50/40 cursor-pointer transition-all shadow-sm group">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-indigo-950 block group-hover:text-amber-900">이야기</span>
+            <span class="text-[0.7em] text-amber-700 bg-amber-100 font-semibold px-1.5 py-0.5 rounded flex items-center gap-0.5">
+              <span>전문</span>
+              <i data-lucide="chevron-right" class="w-3 h-3"></i>
+            </span>
+          </div>
+          <span class="text-slate-600 truncate block mt-0.5 text-[0.85em]">${storyPreview}</span>
         </div>
       `;
 
-      // 핵심 강해
+      // 핵심 강해 (M열)
       document.getElementById('exegesis-content').innerHTML = `
         <div class="border-l-4 border-indigo-700 pl-3 py-1 mb-3">
           <h3 class="font-bold text-indigo-950 text-[1.1em]">${data.title_ko || ''} 종합 강해</h3>
@@ -311,7 +317,7 @@
         <div class="text-slate-700 whitespace-pre-line leading-relaxed">${cleanText(data.exegesis) || '등록된 강해 내용이 없습니다.'}</div>
       `;
 
-      // 상징 & 묵상
+      // 상징 & 묵상 (N열)
       document.getElementById('symbols-content').innerHTML = `
         <div class="border-l-4 border-amber-500 pl-3 py-1 mb-3">
           <h3 class="font-bold text-amber-950 text-[1.1em]">${data.title_ko || ''} 주요 상징 및 절기 의미</h3>
@@ -319,7 +325,7 @@
         <div class="text-slate-700 whitespace-pre-line leading-relaxed">${cleanText(data.symbols) || '등록된 상징 정보가 없습니다.'}</div>
       `;
 
-      // 원어 사전
+      // 원어 사전 (O열)
       const dictList = document.getElementById('dictionary-list');
       let dictData = data.dictionary_json;
 
@@ -352,7 +358,6 @@
       lucide.createIcons();
     }
 
-    // 요일별(일~토) 리딩 카드 렌더링
     function updateDailyReadingView() {
       const data = torahDatabase[currentWeekIndex];
       if (!data) return;
@@ -365,7 +370,6 @@
         }
       });
 
-      // 0(일) -> day1, 1(월) -> day2, ..., 6(토) -> day7
       const dayNum = selectedDayIndex + 1;
       const ref = data[`day${dayNum}_ref`] || (selectedDayIndex === 6 ? (data.torah_ref || '') : data.torah_ref || '');
       const rawText = data[`day${dayNum}_text`] || data.torah_text || '';
@@ -423,7 +427,7 @@
       }
     }
 
-    // 전문 모달 열기
+    // 요일별 성경 전문 모달
     function openDailyModal() {
       const data = torahDatabase[currentWeekIndex];
       if (!data) return;
@@ -443,22 +447,28 @@
       document.getElementById('scripture-modal').classList.remove('hidden');
     }
 
-    function openModal(category, title, text) {
-      document.getElementById('modal-category').innerText = category;
-      document.getElementById('modal-title').innerText = title;
+    // 기존 L열(special_ref)을 읽어오는 이야기 전문 모달
+    function openStoryModal() {
+      const data = torahDatabase[currentWeekIndex];
+      if (!data) return;
+
+      const storyContent = data.special_ref || data.special_text || data.special || '등록된 이야기 내용이 없습니다.';
+
+      document.getElementById('modal-category').innerText = '주간 이야기';
+      document.getElementById('modal-title').innerText = `${data.title_ko || ''} 이야기`;
       
       const modalContent = document.getElementById('modal-content');
-      modalContent.innerText = cleanText(text) || '등록된 본문 내용이 없습니다.';
+      modalContent.innerText = cleanText(storyContent);
       modalContent.scrollTop = 0;
-      
+
       document.getElementById('scripture-modal').classList.remove('hidden');
     }
-    
+
     function closeScriptureModal() {
       document.getElementById('scripture-modal').classList.add('hidden');
     }
 
-    // 북마크 전용 구글 독스 모달 열기 / 닫기
+    // 북마크 구글 독스 모달
     const BOOKMARK_DOC_URL = "https://docs.google.com/document/d/1LEpOuZe9ntnN_hjkD_dpiFvFzlNTJiG9GTuyiKNxnz0/preview";
 
     function openBookmarkModal() {
