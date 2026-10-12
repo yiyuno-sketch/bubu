@@ -12,7 +12,7 @@
     @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&family=Noto+Sans+KR:wght@300;400;500;700&family=Frank+Ruhl+Libre:wght@500;700&display=swap');
     
     :root {
-      --app-base-size: 16px;
+      --app-base-size: 16px; /* 초기 기본 글자 크기 16px */
     }
 
     body { 
@@ -29,28 +29,28 @@
       font-size: var(--app-base-size);
     }
 
-    /* 스프레드시트에서 삽입한 HTML 표 및 헤딩 스타일 복원 */
-    #modal-content table {
+    /* 본문 및 모달 내부 표(Table) 스타일 공통 보정 */
+    #modal-content table, .tab-panel table {
       width: 100%;
       border-collapse: collapse;
       margin: 12px 0;
-      font-size: 0.9em;
+      font-size: 0.95em;
     }
-    #modal-content th, #modal-content td {
+    #modal-content th, #modal-content td, .tab-panel th, .tab-panel td {
       border: 1px solid #cbd5e1;
       padding: 8px 10px;
     }
-    #modal-content th {
+    #modal-content th, .tab-panel th {
       background-color: #f1f5f9;
       font-weight: 700;
     }
-    #modal-content h2 {
-      font-size: 1.2em;
+    #modal-content h2, .tab-panel h2 {
+      font-size: 1.25em;
       font-weight: 700;
       color: #1e1b4b;
       margin-bottom: 8px;
     }
-    #modal-content h3 {
+    #modal-content h3, .tab-panel h3 {
       font-size: 1.1em;
       font-weight: 700;
       color: #312e81;
@@ -60,10 +60,12 @@
 </head>
 <body class="bg-slate-100 text-slate-800 flex justify-center min-h-screen">
 
+  <!-- 반응형 레이아웃: 모바일 100%, 태블릿/PC max-w-3xl -->
   <div class="dynamic-root w-full max-w-3xl bg-white min-h-screen flex flex-col shadow-xl relative">
 
     <!-- 상단 헤더 -->
     <header class="bg-indigo-950 text-white px-4 sm:px-6 py-3 sticky top-0 z-30 shadow-md">
+      <!-- 1층: 서비스명 좌측, 폰트 조절 우측 -->
       <div class="flex items-center justify-between mb-2">
         <div class="flex items-center space-x-2">
           <i data-lucide="book-open" class="w-5 h-5 text-amber-400"></i>
@@ -76,6 +78,7 @@
         </div>
       </div>
 
+      <!-- 2층: 포션 선택 박스 -->
       <div class="flex items-center justify-between bg-indigo-900/40 rounded-xl p-2 sm:p-3 border border-indigo-800/80">
         <button onclick="prevWeek()" class="p-1 hover:bg-indigo-800 rounded-lg text-indigo-300 active:scale-95 transition-all">
           <i data-lucide="chevron-left" class="w-5 h-5"></i>
@@ -105,14 +108,14 @@
         상징 & 묵상
       </button>
       <button onclick="switchTab('dictionary')" id="tab-dictionary" class="tab-btn flex-shrink-0 px-4 py-1.5 rounded-full text-[0.85em] font-semibold transition-all bg-slate-100 text-slate-600 hover:bg-slate-200">
-        원어 사전
+        원어 묵상
       </button>
     </nav>
 
     <!-- 메인 콘텐츠 영역 -->
-    <main id="content-body" class="flex-1 p-4 sm:p-6 pb-44 overflow-y-auto space-y-4">
+    <main id="content-body" class="flex-1 p-4 sm:p-6 pb-28 overflow-y-auto space-y-4">
 
-      <!-- TAB 1: 리딩 본문 (일~토 7일) -->
+      <!-- ================= TAB 1: 리딩 본문 (일~토 7일) ================= -->
       <section id="panel-reading" class="tab-panel space-y-4">
         
         <div class="bg-amber-50/70 border border-amber-200/80 rounded-2xl p-4 sm:p-5">
@@ -145,38 +148,37 @@
         <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4">
           <div class="text-[0.8em] font-bold text-slate-600 mb-2 flex items-center gap-1.5">
             <i data-lucide="scroll" class="w-3.5 h-3.5 text-slate-500"></i>
-            <span>주간전체 성경 범위요약(개정개역 성경책을 참고하세요)</span>
+            <span>주간전체 성경 범위요약(개정개역성경은 책에서 참고하세요)</span>
           </div>
           <div id="weekly-overview-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[0.8em]">
           </div>
         </div>
       </section>
 
-      <!-- TAB 2: 핵심 강해 -->
+      <!-- ================= TAB 2: 핵심 강해 ================= -->
       <section id="panel-exegesis" class="tab-panel hidden space-y-3">
         <div id="exegesis-content" class="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-sm text-[0.9em] leading-relaxed space-y-2">
         </div>
       </section>
 
-      <!-- TAB 3: 상징 & 묵상 -->
+      <!-- ================= TAB 3: 상징 & 묵상 ================= -->
       <section id="panel-symbols" class="tab-panel hidden space-y-3">
         <div id="symbols-content" class="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-sm text-[0.9em] leading-relaxed space-y-2">
         </div>
       </section>
 
-      <!-- TAB 4: 원어 사전 -->
+      <!-- ================= TAB 4: 원어 묵상 (O열 연동) ================= -->
       <section id="panel-dictionary" class="tab-panel hidden space-y-3">
-        <div class="flex items-center justify-between pb-1 px-1">
-          <span class="text-[0.85em] font-bold text-slate-500">주요 히브리어 원어 스트롱코드</span>
-        </div>
-        <div id="dictionary-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+        <div id="dictionary-content" class="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-sm text-[0.9em] leading-relaxed space-y-2">
         </div>
       </section>
-<!-- 👇 여기에 아래 1줄을 추가합니다 (하단 고정 버튼 높이만큼의 빈 안전 공간) 하단 잘리는 현상 방지 -->
+
+      <!-- 하단 고정 버튼 높이만큼의 안전 여백 공간 (잘림 방지) -->
       <div class="w-full h-28 flex-shrink-0" aria-hidden="true"></div>
+
     </main>
 
-    <!-- 성경 전문 및 모달 -->
+    <!-- ================= 성경 전문 및 모달 ================= -->
     <div id="scripture-modal" class="fixed inset-0 z-50 bg-black/60 hidden flex flex-col justify-end items-center">
       <div class="flex-1 w-full" onclick="closeScriptureModal()"></div>
       <div class="bg-white w-full max-w-3xl rounded-t-3xl h-[85vh] flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-bottom duration-300">
@@ -189,7 +191,6 @@
             <i data-lucide="x" class="w-5 h-5"></i>
           </button>
         </div>
-        <!-- whitespace-pre-line 대신 스크립트에서 자동 처리 -->
         <div id="modal-content" class="flex-1 p-5 overflow-y-auto scripture-font text-slate-800 space-y-4 text-[0.95em] leading-relaxed">
         </div>
         <div class="p-3 border-t border-slate-100 bg-slate-50 text-center">
@@ -200,7 +201,7 @@
       </div>
     </div>
 
-    <!-- 북마크 문서 뷰어 모달 -->
+    <!-- ================= 북마크 문서 뷰어 모달 ================= -->
     <div id="bookmark-modal" class="fixed inset-0 z-50 bg-black/60 hidden flex flex-col justify-end sm:justify-center items-center p-0 sm:p-4">
       <div class="fixed inset-0" onclick="closeBookmarkModal()"></div>
       <div class="relative bg-white w-full max-w-3xl rounded-t-3xl sm:rounded-2xl h-[90vh] flex flex-col shadow-2xl overflow-hidden z-10 animate-in slide-in-from-bottom duration-300">
@@ -232,23 +233,18 @@
 
     <!-- 하단 액션바 -->
     <footer class="bg-white/95 backdrop-blur-sm border-t border-slate-200 p-3 fixed bottom-0 left-0 right-0 max-w-3xl mx-auto flex items-center justify-between z-30 shadow-lg">
-     <!-- 잠정적 비활성화 yiyuno
-      <button onclick="openBookmarkModal()" class="flex items-center space-x-1.5 text-[0.8em] text-slate-600 hover:text-indigo-900 font-medium px-3 py-2 rounded-xl hover:bg-slate-100 active:scale-95 transition-all">
+      <!-- 북마크 버튼 잠정 비활성화 (hidden 유지) -->
+      <button onclick="openBookmarkModal()" class="hidden flex items-center space-x-1.5 text-[0.8em] text-slate-600 hover:text-indigo-900 font-medium px-3 py-2 rounded-xl hover:bg-slate-100 active:scale-95 transition-all">
         <i data-lucide="bookmark" class="w-4 h-4 text-amber-500"></i>
         <span>북마크</span>
       </button>
-     여기까지 비활성 -->
-    <!--  이것도 비활성 yiyuno
       <button class="flex items-center space-x-1.5 text-[0.8em] text-slate-600 hover:text-indigo-900 font-medium px-3 py-2 rounded-xl hover:bg-slate-100">
         <i data-lucide="edit-3" class="w-4 h-4"></i>
         <span>묵상 메모</span>
       </button>
-  여기까지 비활성  -->
-    
       <button onclick="sharePortion()" class="bg-indigo-900 text-white text-[0.8em] font-semibold px-4 py-2 rounded-xl flex items-center space-x-1.5 shadow-sm active:scale-95 transition-all">
         <i data-lucide="share-2" class="w-4 h-4"></i>
         <span>포션 나눔</span>
-         <span class="text-gray-400 text-xs">YiyunoRachel CopyRight-Free</span> <!-- 예시: 회색에 작은 글씨 -->
       </button>
     </footer>
 
@@ -277,17 +273,15 @@
       return String(txt).replace(/^\s+/, '').trim();
     }
 
-    // HTML 태그가 포함되어 있는지 확인하고 모달에 렌더링하는 헬퍼 함수
+    // HTML 태그 여부를 감지하여 적절하게 렌더링하는 헬퍼 함수
     function setModalBody(rawText) {
       const modalContent = document.getElementById('modal-content');
       const text = cleanText(rawText);
 
-      // 태그(<...>)가 포함된 경우 innerHTML로 적용
       if (/<[a-z][\s\S]*>/i.test(text)) {
         modalContent.className = "flex-1 p-5 overflow-y-auto scripture-font text-slate-800 space-y-4 text-[0.95em] leading-relaxed";
         modalContent.innerHTML = text;
       } else {
-        // 일반 텍스트인 경우 줄바꿈 유지
         modalContent.className = "flex-1 p-5 overflow-y-auto scripture-font text-slate-800 space-y-4 text-[0.95em] leading-relaxed whitespace-pre-line";
         modalContent.innerText = text;
       }
@@ -327,7 +321,7 @@
 
       updateDailyReadingView();
 
-      // 이야기 데이터 (L열: special_ref) - HTML 태그 제거 후 미리보기 생성
+      // 이야기 데이터 (L열: special_ref)
       const storyRaw = data.special_ref || data.special_text || data.special || '';
       const cleanStoryPreview = storyRaw.replace(/<[^>]*>?/gm, '').trim();
       const storyPreview = cleanStoryPreview ? (cleanStoryPreview.length > 25 ? cleanStoryPreview.substring(0, 25) + '...' : cleanStoryPreview) : '이야기 읽기';
@@ -384,7 +378,7 @@
         </div>
       `;
 
-      // 핵심 강해 (M열)
+      // TAB 2: 핵심 강해 (M열)
       document.getElementById('exegesis-content').innerHTML = `
         <div class="border-l-4 border-indigo-700 pl-3 py-1 mb-3">
           <h3 class="font-bold text-indigo-950 text-[1.1em]">${data.title_ko || ''} 종합 강해</h3>
@@ -392,7 +386,7 @@
         <div class="text-slate-700 leading-relaxed">${cleanText(data.exegesis) || '등록된 강해 내용이 없습니다.'}</div>
       `;
 
-      // 상징 & 묵상 (N열)
+      // TAB 3: 상징 & 묵상 (N열)
       document.getElementById('symbols-content').innerHTML = `
         <div class="border-l-4 border-amber-500 pl-3 py-1 mb-3">
           <h3 class="font-bold text-amber-950 text-[1.1em]">${data.title_ko || ''} 주요 상징 및 절기 의미</h3>
@@ -400,34 +394,23 @@
         <div class="text-slate-700 leading-relaxed">${cleanText(data.symbols) || '등록된 상징 정보가 없습니다.'}</div>
       `;
 
-      // 원어 사전 (O열)
-      const dictList = document.getElementById('dictionary-list');
-      let dictData = data.dictionary_json;
+      // TAB 4: 원어 묵상 (O열 dictionary_json 연동)
+      const rawDict = cleanText(data.dictionary_json || data.dictionary || '');
+      const dictContainer = document.getElementById('dictionary-content');
 
-      if (typeof dictData === 'string' && dictData.trim() !== '') {
-        try {
-          dictData = JSON.parse(dictData);
-        } catch (e) {
-          dictList.innerHTML = `<div class="col-span-full bg-white border border-slate-200 rounded-xl p-4 text-slate-700 whitespace-pre-line text-[0.9em]">${data.dictionary_json}</div>`;
-          dictData = null;
-        }
-      }
-
-      if (Array.isArray(dictData) && dictData.length > 0) {
-        dictList.innerHTML = dictData.map(item => `
-          <div class="bg-white border border-slate-200 rounded-xl p-3 flex justify-between items-center shadow-sm">
-            <div>
-              <div class="flex items-center space-x-2">
-                <span class="text-[0.8em] font-bold text-indigo-700">${item.code || ''}</span>
-                <span class="font-bold text-slate-800 text-[0.9em]">${item.pronounce || ''} (${item.word || ''})</span>
-              </div>
-              <div class="text-[0.8em] text-slate-500 mt-0.5">${item.meaning || ''}</div>
-            </div>
-            <span class="hebrew-text text-[1.3em] text-slate-700">${item.word || ''}</span>
+      if (rawDict) {
+        const hasHtml = /<[a-z][\s\S]*>/i.test(rawDict);
+        const whitespaceClass = hasHtml ? '' : 'whitespace-pre-line';
+        dictContainer.className = `bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-sm text-[0.9em] leading-relaxed space-y-2 ${whitespaceClass}`;
+        dictContainer.innerHTML = `
+          <div class="border-l-4 border-indigo-700 pl-3 py-1 mb-3">
+            <h3 class="font-bold text-indigo-950 text-[1.1em]">${data.title_ko || ''} 원어 심화 묵상</h3>
           </div>
-        `).join('');
-      } else if (dictData !== null) {
-        dictList.innerHTML = '<div class="col-span-full text-center py-4 text-slate-400 text-[0.85em]">등록된 원어 사전 데이터가 없습니다.</div>';
+          <div class="text-slate-700 leading-relaxed">${rawDict}</div>
+        `;
+      } else {
+        dictContainer.className = "bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-sm text-[0.9em] leading-relaxed text-center text-slate-400";
+        dictContainer.innerHTML = '등록된 원어 묵상 내용이 없습니다.';
       }
       
       lucide.createIcons();
@@ -563,7 +546,7 @@
       document.getElementById('scripture-modal').classList.remove('hidden');
     }
 
-    // 이야기 전문 모달 (HTML 태그 정상 렌더링 지원)
+    // 이야기 전문 모달
     function openStoryModal() {
       const data = torahDatabase[currentWeekIndex];
       if (!data) return;
@@ -612,16 +595,16 @@
       }
     }
 
-    // 글자 크기 조절
+    // 글자 크기 조절 (기본값 16px 연동)
     let currentBaseSize = 16;
     document.getElementById('btn-font-inc').addEventListener('click', () => {
-      if (currentBaseSize < 20) {
+      if (currentBaseSize < 22) {
         currentBaseSize += 1;
         document.documentElement.style.setProperty('--app-base-size', currentBaseSize + 'px');
       }
     });
     document.getElementById('btn-font-dec').addEventListener('click', () => {
-      if (currentBaseSize > 11) {
+      if (currentBaseSize > 12) {
         currentBaseSize -= 1;
         document.documentElement.style.setProperty('--app-base-size', currentBaseSize + 'px');
       }
