@@ -286,8 +286,11 @@
       // 하프타라 데이터 (I열: haftarah_ref)
       const haftarahRef = data.haftarah_ref || '-';
 
+      // 브릿하다샤 데이터 (J열: brit_ref)
+      const britRef = data.brit_ref || '-';
+
       document.getElementById('weekly-overview-list').innerHTML = `
-        <!-- 토라 (파라샤) 카드 (G열: torah_text 중복 연동 및 클릭 시 팝업 열림) -->
+        <!-- 토라 (파라샤) 카드 (G열: torah_text 연동) -->
         <div onclick="openTorahModal()" class="bg-white p-2.5 rounded-lg border border-slate-200 hover:border-indigo-400 hover:bg-indigo-50/30 cursor-pointer transition-all shadow-sm group">
           <div class="flex items-center justify-between">
             <span class="font-bold text-indigo-950 block group-hover:text-indigo-900">토라 (파라샤)</span>
@@ -299,7 +302,7 @@
           <span class="text-slate-600 truncate block mt-0.5 text-[0.85em]">${data.torah_ref || '-'}</span>
         </div>
 
-        <!-- 하프타라 카드 (I열: haftarah_ref 연동 및 클릭 시 팝업 열림) -->
+        <!-- 하프타라 카드 (I열: haftarah_ref 연동) -->
         <div onclick="openHaftarahModal()" class="bg-white p-2.5 rounded-lg border border-slate-200 hover:border-indigo-400 hover:bg-indigo-50/30 cursor-pointer transition-all shadow-sm group">
           <div class="flex items-center justify-between">
             <span class="font-bold text-indigo-950 block group-hover:text-indigo-900">하프타라 (선지서)</span>
@@ -311,9 +314,16 @@
           <span class="text-slate-600 truncate block mt-0.5 text-[0.85em]">${haftarahRef}</span>
         </div>
 
-        <div class="bg-white p-2.5 rounded-lg border border-slate-200">
-          <span class="font-bold text-indigo-950 block">브릿하다샤 (신약)</span>
-          <span class="text-slate-600">${data.brit_ref || '-'}</span>
+        <!-- 브릿하다샤 카드 (J열 장절, K열: brit_text 연동) -->
+        <div onclick="openBritModal()" class="bg-white p-2.5 rounded-lg border border-slate-200 hover:border-indigo-400 hover:bg-indigo-50/30 cursor-pointer transition-all shadow-sm group">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-indigo-950 block group-hover:text-indigo-900">브릿하다샤 (신약)</span>
+            <span class="text-[0.7em] text-indigo-700 bg-indigo-50 font-semibold px-1.5 py-0.5 rounded flex items-center gap-0.5">
+              <span>전문</span>
+              <i data-lucide="chevron-right" class="w-3 h-3"></i>
+            </span>
+          </div>
+          <span class="text-slate-600 truncate block mt-0.5 text-[0.85em]">${britRef}</span>
         </div>
 
         <!-- 이야기 카드 (L열: special_ref 연동) -->
@@ -467,7 +477,7 @@
       document.getElementById('scripture-modal').classList.remove('hidden');
     }
 
-    // 주간 토라(파라샤) 전체 전문 모달 (스프레드시트 G열 torah_text 연결)
+    // 주간 토라 전체 전문 모달 (G열 torah_text 연결)
     function openTorahModal() {
       const data = torahDatabase[currentWeekIndex];
       if (!data) return;
@@ -480,12 +490,12 @@
       
       const modalContent = document.getElementById('modal-content');
       modalContent.innerText = cleanText(text);
-      modalContent.scrollTop = 0; // 첫 줄부터 표시
+      modalContent.scrollTop = 0;
 
       document.getElementById('scripture-modal').classList.remove('hidden');
     }
 
-    // 하프타라(선지서) 전문 모달 (스프레드시트 I열 haftarah_ref 연결)
+    // 하프타라 전문 모달 (I열 haftarah_ref, haftarah_text 연결)
     function openHaftarahModal() {
       const data = torahDatabase[currentWeekIndex];
       if (!data) return;
@@ -503,7 +513,25 @@
       document.getElementById('scripture-modal').classList.remove('hidden');
     }
 
-    // 이야기 전문 모달 (스프레드시트 L열 special_ref 연결)
+    // 브릿하다샤 전문 모달 (J열 brit_ref, K열 brit_text 연결)
+    function openBritModal() {
+      const data = torahDatabase[currentWeekIndex];
+      if (!data) return;
+
+      const ref = data.brit_ref || '브릿하다샤';
+      const text = data.brit_text || data.brit || `${ref} 본문입니다. 시트의 K열(brit_text)에 내용을 등록해 주세요.`;
+
+      document.getElementById('modal-category').innerText = '브릿하다샤 (신약)';
+      document.getElementById('modal-title').innerText = ref;
+      
+      const modalContent = document.getElementById('modal-content');
+      modalContent.innerText = cleanText(text);
+      modalContent.scrollTop = 0;
+
+      document.getElementById('scripture-modal').classList.remove('hidden');
+    }
+
+    // 이야기 전문 모달 (L열 special_ref 연결)
     function openStoryModal() {
       const data = torahDatabase[currentWeekIndex];
       if (!data) return;
