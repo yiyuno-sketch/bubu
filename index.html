@@ -12,7 +12,7 @@
     @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&family=Noto+Sans+KR:wght@300;400;500;700&family=Frank+Ruhl+Libre:wght@500;700&display=swap');
     
     :root {
-      --app-base-size: 16px; /* 초기 기본 글자 크기 16px */
+      --app-base-size: 16px; /* 기본 글자 크기 16px */
     }
 
     body { 
@@ -29,7 +29,7 @@
       font-size: var(--app-base-size);
     }
 
-    /* 본문 및 모달 내부 표(Table) 스타일 공통 보정 */
+    /* 본문 및 모달 내부 표(Table) 서식 자동 지원 */
     #modal-content table, .tab-panel table {
       width: 100%;
       border-collapse: collapse;
@@ -60,18 +60,17 @@
 </head>
 <body class="bg-slate-100 text-slate-800 flex justify-center min-h-screen">
 
-  <!-- 반응형 레이아웃: 모바일 100%, 태블릿/PC max-w-3xl -->
   <div class="dynamic-root w-full max-w-3xl bg-white min-h-screen flex flex-col shadow-xl relative">
 
     <!-- 상단 헤더 -->
     <header class="bg-indigo-950 text-white px-4 sm:px-6 py-3 sticky top-0 z-30 shadow-md">
       <!-- 1층: 서비스명 좌측, 폰트 조절 우측 -->
       <div class="flex items-center justify-between mb-2">
-       <div class="flex items-center space-x-2">
-         <i data-lucide="book-open" class="w-5 h-5 text-amber-400"></i>
-         <span class="text-[0.9em] tracking-wider text-white">부부묵상 365</span>
-       </div>
-       <div class="flex items-center space-x-1 bg-indigo-900/60 rounded-lg px-2 py-0.5 border border-indigo-700/50">
+        <div class="flex items-center space-x-2">
+          <i data-lucide="book-open" class="w-5 h-5 text-amber-400"></i>
+          <span class="text-[1.05em] tracking-wider text-white font-bold">부부묵상 365</span>
+        </div>
+        <div class="flex items-center space-x-1 bg-indigo-900/60 rounded-lg px-2 py-0.5 border border-indigo-700/50">
           <button id="btn-font-dec" class="text-[0.75em] text-indigo-300 hover:text-white px-1.5 py-0.5">가-</button>
           <span class="text-[0.7em] text-indigo-400">|</span>
           <button id="btn-font-inc" class="text-[0.75em] text-indigo-300 hover:text-white px-1.5 py-0.5 font-bold">가+</button>
@@ -155,25 +154,25 @@
         </div>
       </section>
 
-      <!-- ================= TAB 2: 핵심 강해 (M 열) ================= -->
+      <!-- ================= TAB 2: 핵심 강해 ================= -->
       <section id="panel-exegesis" class="tab-panel hidden space-y-3">
         <div id="exegesis-content" class="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-sm text-[0.9em] leading-relaxed space-y-2">
         </div>
       </section>
 
-      <!-- ================= TAB 3: 상징 & 묵상 (N 열)================= -->
+      <!-- ================= TAB 3: 상징 & 묵상 ================= -->
       <section id="panel-symbols" class="tab-panel hidden space-y-3">
         <div id="symbols-content" class="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-sm text-[0.9em] leading-relaxed space-y-2">
         </div>
       </section>
 
-      <!-- ================= TAB 4: 원어 묵상 (O열 연동) ================= -->
+      <!-- ================= TAB 4: 원어 묵상 (O열) ================= -->
       <section id="panel-dictionary" class="tab-panel hidden space-y-3">
         <div id="dictionary-content" class="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-sm text-[0.9em] leading-relaxed space-y-2">
         </div>
       </section>
 
-      <!-- 하단 고정 버튼 높이만큼의 안전 여백 공간 (잘림 방지) -->
+      <!-- 하단 고정 버튼 높이만큼의 안전 여백 블록 -->
       <div class="w-full h-28 flex-shrink-0" aria-hidden="true"></div>
 
     </main>
@@ -201,65 +200,28 @@
       </div>
     </div>
 
-    <!-- ================= 북마크 문서 뷰어 모달 ================= -->
-    <div id="bookmark-modal" class="fixed inset-0 z-50 bg-black/60 hidden flex flex-col justify-end sm:justify-center items-center p-0 sm:p-4">
-      <div class="fixed inset-0" onclick="closeBookmarkModal()"></div>
-      <div class="relative bg-white w-full max-w-3xl rounded-t-3xl sm:rounded-2xl h-[90vh] flex flex-col shadow-2xl overflow-hidden z-10 animate-in slide-in-from-bottom duration-300">
-        <div class="p-3 sm:p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
-          <div class="flex items-center space-x-2">
-            <span class="text-[0.75em] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">문서 뷰어</span>
-            <h3 class="font-bold text-slate-900 text-[1em]">북마크 문서</h3>
-          </div>
-          <div class="flex items-center space-x-2">
-            <a href="https://docs.google.com/document/d/1LEpOuZe9ntnN_hjkD_dpiFvFzlNTJiG9GTuyiKNxnz0/edit?tab=t.0" target="_blank" rel="noopener noreferrer" class="text-[0.75em] text-indigo-600 hover:underline flex items-center gap-1 bg-white border border-slate-200 px-2 py-1 rounded-lg">
-              <span>새 창 열기</span>
-              <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
-            </a>
-            <button onclick="closeBookmarkModal()" class="p-1.5 hover:bg-slate-200 rounded-full text-slate-500">
-              <i data-lucide="x" class="w-5 h-5"></i>
-            </button>
-          </div>
-        </div>
-        <div class="flex-1 w-full bg-slate-100 relative">
-          <iframe id="bookmark-iframe" src="" class="w-full h-full border-0" allow="autoplay"></iframe>
-        </div>
-        <div class="p-3 border-t border-slate-200 bg-slate-50 text-center">
-          <button onclick="closeBookmarkModal()" class="w-full bg-indigo-950 text-white font-semibold py-2.5 rounded-xl text-[0.85em] hover:bg-indigo-900 transition-all">
-            문서 닫기
-          </button>
-        </div>
-      </div>
-    </div>
-
     <!-- 하단 액션바 -->
     <footer class="bg-white/95 backdrop-blur-sm border-t border-slate-200 p-3 fixed bottom-0 left-0 right-0 max-w-3xl mx-auto flex items-center justify-between z-30 shadow-lg">
-      <!-- 북마크 버튼 잠정 비활성화 (hidden 유지) -->
-      <button onclick="openBookmarkModal()" class="hidden flex items-center space-x-1.5 text-[0.8em] text-slate-600 hover:text-indigo-900 font-medium px-3 py-2 rounded-xl hover:bg-slate-100 active:scale-95 transition-all">
-        <i data-lucide="bookmark" class="w-4 h-4 text-amber-500"></i>
-        <span>북마크</span>
-      </button>
-      <!-- 묵상메모 비활성화
       <button class="flex items-center space-x-1.5 text-[0.8em] text-slate-600 hover:text-indigo-900 font-medium px-3 py-2 rounded-xl hover:bg-slate-100">
         <i data-lucide="edit-3" class="w-4 h-4"></i>
         <span>묵상 메모</span>
       </button>
-      여기까지 -->
       <button onclick="sharePortion()" class="bg-indigo-900 text-white text-[0.8em] font-semibold px-4 py-2 rounded-xl flex items-center space-x-1.5 shadow-sm active:scale-95 transition-all">
         <i data-lucide="share-2" class="w-4 h-4"></i>
         <span>포션 나눔</span>
       </button>
-      <span class="text-gray-400 text-xs">CopyRight-Free 2026 YiyunoRachel</span> <!-- 회색 글씨 -->
     </footer>
 
   </div>
 
   <script>
-    // 구글 앱스 스크립트(GAS) 배포 웹 앱 URL
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyixC3pyDsX4WXrJijIfecl2huUIzC-XQ7Cvv01xiroQu4Q-Dt30AMgGgNGxpxhnG7_/exec";
 
-    let torahDatabase = [];
-    let currentWeekIndex = 0;
-    let selectedDayIndex = 0; // 0:일, 1:월, 2:화, 3:수, 4:목, 5:금, 6:토
+    let currentWeek = 1;
+    let totalWeeks = 56;
+    let loadedWeeksCache = {}; // 앱 세션 동안 불러온 주차 인메모리 저장소
+    let currentWeekData = null;
+    let selectedDayIndex = 0; // 0:일 ~ 6:토
 
     const DAY_NAMES = [
       "일요일 (1일차)", 
@@ -276,7 +238,7 @@
       return String(txt).replace(/^\s+/, '').trim();
     }
 
-    // HTML 태그 여부를 감지하여 적절하게 렌더링하는 헬퍼 함수
+    // HTML 감지 및 렌더링 함수
     function setModalBody(rawText) {
       const modalContent = document.getElementById('modal-content');
       const text = cleanText(rawText);
@@ -291,35 +253,49 @@
       modalContent.scrollTop = 0;
     }
 
-    async function loadTorahData() {
-      const headerDate = document.getElementById('header-date');
-      if (headerDate) headerDate.innerText = "데이터 불러오는 중...";
+    // 주차별 동적 호출 (방안 B 핵심)
+    async function fetchWeekData(weekNumber) {
+      // 1. 이미 이번 세션에서 한 번 불러온 주차면 통신 없이 0.01초 만에 즉시 렌더링!
+      if (loadedWeeksCache[weekNumber]) {
+        currentWeek = weekNumber;
+        currentWeekData = loadedWeeksCache[weekNumber];
+        renderCurrentWeek();
+        return;
+      }
+
+      // 2. 새로운 주차를 부를 때 로딩 표시
+      document.getElementById('header-title').innerText = `[${weekNumber}주차] 불러오는 중...`;
+      document.getElementById('header-date').innerText = '데이터 통신 중';
 
       try {
-        const fetchUrl = `${GAS_API_URL}?nocache=1&_t=${Date.now()}`;
+        const fetchUrl = `${GAS_API_URL}?week=${weekNumber}&_t=${Date.now()}`;
         const response = await fetch(fetchUrl);
-        const freshData = await response.json();
+        const result = await response.json();
 
-        if (freshData && freshData.length > 0) {
-          torahDatabase = freshData;
-          selectedDayIndex = new Date().getDay();
+        if (result && result.data) {
+          currentWeek = result.currentWeek;
+          if (result.totalWeeks) totalWeeks = result.totalWeeks;
+          
+          currentWeekData = result.data;
+          loadedWeeksCache[currentWeek] = result.data; // 세션 캐시에 보관
+
           renderCurrentWeek();
+        } else {
+          throw new Error("데이터 구조 오류");
         }
       } catch (error) {
-        console.error("구글 데이터 동기화 실패:", error);
-        const card = document.getElementById('daily-reading-card');
-        if (card) {
-          card.innerHTML = '<div class="text-center py-4 text-red-500 text-[0.85em]">데이터를 가져오지 못했습니다. 배포 권한("모든 사용자")을 확인해 주세요.</div>';
-        }
+        console.error("데이터 동기화 실패:", error);
+        document.getElementById('header-title').innerText = `[${weekNumber}주차] 연결 실패`;
+        document.getElementById('header-date').innerText = '다시 시도해 주세요';
       }
     }
 
     function renderCurrentWeek() {
-      const data = torahDatabase[currentWeekIndex];
+      const data = currentWeekData;
       if (!data) return;
 
       document.getElementById('header-date').innerText = `${data.date_info || ''} (${data.season || ''})`;
-      document.getElementById('header-title').innerText = `[${data.week}주차] ${data.title_ko || ''}`;
+      document.getElementById('header-title').innerText = `[${data.week || currentWeek}주차] ${data.title_ko || ''}`;
       document.getElementById('header-hebrew').innerText = data.title_he || '';
 
       updateDailyReadingView();
@@ -329,10 +305,8 @@
       const cleanStoryPreview = storyRaw.replace(/<[^>]*>?/gm, '').trim();
       const storyPreview = cleanStoryPreview ? (cleanStoryPreview.length > 25 ? cleanStoryPreview.substring(0, 25) + '...' : cleanStoryPreview) : '이야기 읽기';
 
-      // 하프타라 데이터 (I열: haftarah_ref)
+      // 하프타라 & 브릿하다샤
       const haftarahRef = data.haftarah_ref || '-';
-
-      // 브릿하다샤 데이터 (J열: brit_ref)
       const britRef = data.brit_ref || '-';
 
       document.getElementById('weekly-overview-list').innerHTML = `
@@ -397,7 +371,7 @@
         <div class="text-slate-700 leading-relaxed">${cleanText(data.symbols) || '등록된 상징 정보가 없습니다.'}</div>
       `;
 
-      // TAB 4: 원어 묵상 (O열 dictionary_json 연동)
+      // TAB 4: 원어 묵상 (O열)
       const rawDict = cleanText(data.dictionary_json || data.dictionary || '');
       const dictContainer = document.getElementById('dictionary-content');
 
@@ -420,7 +394,7 @@
     }
 
     function updateDailyReadingView() {
-      const data = torahDatabase[currentWeekIndex];
+      const data = currentWeekData;
       if (!data) return;
 
       document.querySelectorAll('.daily-tab-btn').forEach((btn, idx) => {
@@ -476,21 +450,20 @@
     }
 
     function prevWeek() {
-      if (currentWeekIndex > 0) {
-        currentWeekIndex--;
-        renderCurrentWeek();
-      }
-    }
-    function nextWeek() {
-      if (currentWeekIndex < torahDatabase.length - 1) {
-        currentWeekIndex++;
-        renderCurrentWeek();
+      if (currentWeek > 1) {
+        fetchWeekData(currentWeek - 1);
       }
     }
 
-    // 요일별 성경 전문 모달
+    function nextWeek() {
+      if (currentWeek < totalWeeks) {
+        fetchWeekData(currentWeek + 1);
+      }
+    }
+
+    // 모달 제어 함수들
     function openDailyModal() {
-      const data = torahDatabase[currentWeekIndex];
+      const data = currentWeekData;
       if (!data) return;
 
       const dayNum = selectedDayIndex + 1;
@@ -504,24 +477,18 @@
       document.getElementById('scripture-modal').classList.remove('hidden');
     }
 
-    // 주간 토라 전문 모달
     function openTorahModal() {
-      const data = torahDatabase[currentWeekIndex];
+      const data = currentWeekData;
       if (!data) return;
 
-      const ref = data.torah_ref || '토라 본문';
-      const text = data.torah_text || '등록된 토라 본문 내용이 없습니다.';
-
       document.getElementById('modal-category').innerText = '주간 토라 (파라샤)';
-      document.getElementById('modal-title').innerText = ref;
-      
-      setModalBody(text);
+      document.getElementById('modal-title').innerText = data.torah_ref || '토라 본문';
+      setModalBody(data.torah_text || '등록된 토라 본문 내용이 없습니다.');
       document.getElementById('scripture-modal').classList.remove('hidden');
     }
 
-    // 하프타라 전문 모달
     function openHaftarahModal() {
-      const data = torahDatabase[currentWeekIndex];
+      const data = currentWeekData;
       if (!data) return;
 
       const ref = data.haftarah_ref || '하프타라';
@@ -529,14 +496,12 @@
 
       document.getElementById('modal-category').innerText = '하프타라 (선지서)';
       document.getElementById('modal-title').innerText = ref;
-      
       setModalBody(text);
       document.getElementById('scripture-modal').classList.remove('hidden');
     }
 
-    // 브릿하다샤 전문 모달
     function openBritModal() {
-      const data = torahDatabase[currentWeekIndex];
+      const data = currentWeekData;
       if (!data) return;
 
       const ref = data.brit_ref || '브릿하다샤';
@@ -544,43 +509,24 @@
 
       document.getElementById('modal-category').innerText = '브릿하다샤 (신약)';
       document.getElementById('modal-title').innerText = ref;
-      
       setModalBody(text);
       document.getElementById('scripture-modal').classList.remove('hidden');
     }
 
-    // 이야기 전문 모달
     function openStoryModal() {
-      const data = torahDatabase[currentWeekIndex];
+      const data = currentWeekData;
       if (!data) return;
 
       const storyContent = data.special_ref || data.special_text || data.special || '등록된 이야기 내용이 없습니다.';
 
       document.getElementById('modal-category').innerText = '주간 이야기';
       document.getElementById('modal-title').innerText = `${data.title_ko || ''} 이야기`;
-      
       setModalBody(storyContent);
       document.getElementById('scripture-modal').classList.remove('hidden');
     }
 
     function closeScriptureModal() {
       document.getElementById('scripture-modal').classList.add('hidden');
-    }
-
-    // 북마크 구글 독스 모달
-    const BOOKMARK_DOC_URL = "https://docs.google.com/document/d/1LEpOuZe9ntnN_hjkD_dpiFvFzlNTJiG9GTuyiKNxnz0/preview";
-
-    function openBookmarkModal() {
-      const iframe = document.getElementById('bookmark-iframe');
-      if (iframe && iframe.src !== BOOKMARK_DOC_URL) {
-        iframe.src = BOOKMARK_DOC_URL;
-      }
-      document.getElementById('bookmark-modal').classList.remove('hidden');
-      lucide.createIcons();
-    }
-
-    function closeBookmarkModal() {
-      document.getElementById('bookmark-modal').classList.add('hidden');
     }
 
     function switchTab(tabId) {
@@ -598,7 +544,7 @@
       }
     }
 
-    // 글자 크기 조절 (기본값 16px 연동)
+    // 글자 크기 조절
     let currentBaseSize = 16;
     document.getElementById('btn-font-inc').addEventListener('click', () => {
       if (currentBaseSize < 22) {
@@ -644,7 +590,8 @@
 
     window.addEventListener("DOMContentLoaded", () => {
       lucide.createIcons();
-      loadTorahData();
+      selectedDayIndex = new Date().getDay(); // 오늘 요일 자동 선택
+      fetchWeekData(1); // 1주차 우선 호출
     });
   </script>
 </body>
