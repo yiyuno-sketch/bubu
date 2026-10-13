@@ -83,7 +83,7 @@
           <i data-lucide="chevron-left" class="w-5 h-5"></i>
         </button>
         <div class="text-center flex-1 px-2">
-          <div id="header-date" class="text-[0.75em] text-amber-300 font-semibold tracking-wide">로딩 중...</div>
+          <div id="header-date" class="text-[0.75em] text-amber-300 font-semibold tracking-wide">오늘의 말씀 확인 중...</div>
           <div class="flex items-center justify-center space-x-2">
             <h1 id="header-title" class="text-[1.1em] font-bold text-white">토라포션 불러오는 중</h1>
             <span id="header-hebrew" class="hebrew-text text-[1.2em] text-amber-200"></span>
@@ -204,10 +204,10 @@
     <footer class="bg-white/95 backdrop-blur-sm border-t border-slate-200 p-3 fixed bottom-0 left-0 right-0 max-w-3xl mx-auto flex items-center justify-between z-30 shadow-lg">
       <button class="flex items-center space-x-1.5 text-[0.8em] text-slate-600 hover:text-indigo-900 font-medium px-3 py-2 rounded-xl hover:bg-slate-100">
         <i data-lucide="edit-3" class="w-4 h-4"></i>
-        <span>메 모</span>
+        <span>묵상 메모</span>
       </button>
 
-      <!-- 카피라이트 문구 (회색, 0.7em, 기울임꼴) -->
+      <!-- 카피라이트 (회색, 0.7em, 기울임꼴) -->
       <span class="text-slate-400 text-[0.7em] italic select-none">
         CopyRight-Free 2026 YiyunoRachel
       </span>
@@ -223,9 +223,9 @@
   <script>
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyixC3pyDsX4WXrJijIfecl2huUIzC-XQ7Cvv01xiroQu4Q-Dt30AMgGgNGxpxhnG7_/exec";
 
-    let currentWeek = 1;
-    let totalWeeks = 56;
-    let loadedWeeksCache = {}; // 앱 세션 동안 불러온 주차 인메모리 저장소
+    let currentIndex = 1;     // 시트 내 현재 행 순번 (1 ~ totalCount)
+    let totalCount = 1;       // 시트 내 전체 데이터 행 개수
+    let sessionCache = {};    // 이번 세션에서 불러온 인덱스 저장소 (초고속 재열람)
     let currentWeekData = null;
     let selectedDayIndex = 0; // 0:일 ~ 6:토
 
@@ -244,7 +244,16 @@
       return String(txt).replace(/^\s+/, '').trim();
     }
 
-    // HTML 감지 및 렌더링 함수
+    // 접속 당일의 양력 날짜(YYYY-MM-DD) 구하기
+    function getTodayYMD() {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = ('0' + (now.getMonth() + 1)).slice(-2);
+      const d = ('0' + now.getDate()).slice(-2);
+      return `${y}-${m}-${d}`;
+    }
+
+    // HTML 태그 감지 및 렌더링 함수
     function setModalBody(rawText) {
       const modalContent = document.getElementById('modal-content');
       const text = cleanText(rawText);
@@ -259,31 +268,39 @@
       modalContent.scrollTop = 0;
     }
 
-    // 주차별 동적 호출 (방안 B 핵심)
-    async function fetchWeekData(weekNumber) {
-      // 1. 이미 이번 세션에서 한 번 불러온 주차면 통신 없이 0.01초 만에 즉시 렌더링!
-      if (loadedWeeksCache[weekNumber]) {
-        currentWeek = weekNumber;
-        currentWeekData = loadedWeeksCache[weekNumber];
+    // 데이터 호출 (오늘 날짜 today 또는 특정 index 번호)
+    async function fetchWeekData(param) {
+      // 1. 이미 이번 세션에서 읽어온 주차면 통신 없이 0.01초 즉시 표시
+      if (param.index && sessionCache[param.index]) {
+        const cached = sessionCache[param.index];
+        currentIndex = cached.currentIndex;
+        totalCount = cached.totalCount;
+        currentWeekData = cached.data;
         renderCurrentWeek();
         return;
       }
 
-      // 2. 새로운 주차를 부를 때 로딩 표시
-      document.getElementById('header-title').innerText = `[${weekNumber}주차] 불러오는 중...`;
-      document.getElementById('header-date').innerText = '데이터 통신 중';
+      // 2. 통신 진행 표시
+      document.getElementById('header-title').innerText = "포션 불러오는 중...";
+      document.getElementById('header-date').innerText = '데이터 동기화 중';
+
+      let queryString = '';
+      if (param.today) queryString = `today=${param.today}`;
+      else if (param.index) queryString = `index=${param.index}`;
+      else if (param.week) queryString = `week=${encodeURIComponent(param.week)}`;
 
       try {
-        const fetchUrl = `${GAS_API_URL}?week=${weekNumber}&_t=${Date.now()}`;
+        const fetchUrl = `${GAS_API_URL}?${queryString}&_t=${Date.now()}`;
         const response = await fetch(fetchUrl);
         const result = await response.json();
 
         if (result && result.data) {
-          currentWeek = result.currentWeek;
-          if (result.totalWeeks) totalWeeks = result.totalWeeks;
-          
+          currentIndex = result.currentIndex;
+          totalCount = result.totalCount;
           currentWeekData = result.data;
-          loadedWeeksCache[currentWeek] = result.data; // 세션 캐시에 보관
+          
+          // 세션 메모리에 보관
+          sessionCache[currentIndex] = result;
 
           renderCurrentWeek();
         } else {
@@ -291,8 +308,8 @@
         }
       } catch (error) {
         console.error("데이터 동기화 실패:", error);
-        document.getElementById('header-title').innerText = `[${weekNumber}주차] 연결 실패`;
-        document.getElementById('header-date').innerText = '다시 시도해 주세요';
+        document.getElementById('header-title').innerText = "연결 실패";
+        document.getElementById('header-date').innerText = "다시 시도해 주세요";
       }
     }
 
@@ -300,8 +317,13 @@
       const data = currentWeekData;
       if (!data) return;
 
-      document.getElementById('header-date').innerText = `${data.date_info || ''} (${data.season || ''})`;
-      document.getElementById('header-title').innerText = `[${data.week || currentWeek}주차] ${data.title_ko || ''}`;
+      // 주차 라벨 자동 서식 (숫자면 [N주차], 문자면 [초막절] 등)
+      const weekVal = data.week || '';
+      const weekDisplay = String(weekVal).includes('주') || isNaN(weekVal) ? `[${weekVal}]` : `[${weekVal}주차]`;
+
+      const dateDisplay = data.date_info ? `${data.date_info} (${data.season || ''})` : (data.start_date ? `${data.start_date} ~ ${data.end_date}` : '');
+      document.getElementById('header-date').innerText = dateDisplay;
+      document.getElementById('header-title').innerText = `${weekDisplay} ${data.title_ko || ''}`;
       document.getElementById('header-hebrew').innerText = data.title_he || '';
 
       updateDailyReadingView();
@@ -455,15 +477,17 @@
       updateDailyReadingView();
     }
 
+    // 이전 주차/행 이동
     function prevWeek() {
-      if (currentWeek > 1) {
-        fetchWeekData(currentWeek - 1);
+      if (currentIndex > 1) {
+        fetchWeekData({ index: currentIndex - 1 });
       }
     }
 
+    // 다음 주차/행 이동
     function nextWeek() {
-      if (currentWeek < totalWeeks) {
-        fetchWeekData(currentWeek + 1);
+      if (currentIndex < totalCount) {
+        fetchWeekData({ index: currentIndex + 1 });
       }
     }
 
@@ -597,7 +621,10 @@
     window.addEventListener("DOMContentLoaded", () => {
       lucide.createIcons();
       selectedDayIndex = new Date().getDay(); // 오늘 요일 자동 선택
-      fetchWeekData(1); // 1주차 우선 호출
+      
+      // 접속한 당일(오늘) 날짜를 넘겨 현재 주차를 자동 판별하여 호출
+      const todayStr = getTodayYMD();
+      fetchWeekData({ today: todayStr });
     });
   </script>
 </body>
