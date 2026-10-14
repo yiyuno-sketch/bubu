@@ -190,7 +190,7 @@
             <i data-lucide="x" class="w-5 h-5"></i>
           </button>
         </div>
-        <div id="modal-content" class="flex-1 p-5 overflow-y-auto scripture-font text-slate-800 space-y-4 text-[0.95em] leading-relaxed">
+        <div id="modal-content" class="flex-1 p-5 overflow-y-auto text-slate-800 space-y-4 text-[0.95em] leading-relaxed" style="font-family: 'Noto Sans KR', sans-serif;">
         </div>
         <div class="p-3 border-t border-slate-100 bg-slate-50 text-center">
           <button onclick="closeScriptureModal()" class="w-full bg-indigo-950 text-white font-semibold py-2.5 rounded-xl text-[0.85em] hover:bg-indigo-900 transition-all">
@@ -258,11 +258,13 @@
       const modalContent = document.getElementById('modal-content');
       const text = cleanText(rawText);
 
+      modalContent.style.fontFamily = "'Noto Sans KR', sans-serif";
+
       if (/<[a-z][\s\S]*>/i.test(text)) {
-        modalContent.className = "flex-1 p-5 overflow-y-auto scripture-font text-slate-800 space-y-4 text-[0.95em] leading-relaxed";
+        modalContent.className = "flex-1 p-5 overflow-y-auto text-slate-800 space-y-4 text-[0.95em] leading-relaxed";
         modalContent.innerHTML = text;
       } else {
-        modalContent.className = "flex-1 p-5 overflow-y-auto scripture-font text-slate-800 space-y-4 text-[0.95em] leading-relaxed whitespace-pre-line";
+        modalContent.className = "flex-1 p-5 overflow-y-auto text-slate-800 space-y-4 text-[0.95em] leading-relaxed whitespace-pre-line";
         modalContent.innerText = text;
       }
       modalContent.scrollTop = 0;
@@ -439,7 +441,25 @@
       const text = cleanText(rawText);
       const dayLabel = data[`day${dayNum}_day`] || ['일', '월', '화', '수', '목', '금', '토'][selectedDayIndex];
 
-      const previewText = text ? text.replace(/<[^>]*>?/gm, '').substring(0, 150) + '...' : '해당 요일의 본문 내용이 등록되어 있지 않습니다.';
+      // HTML 태그 포함 여부에 맞춰 미리보기 렌더링 (글꼴: Noto Sans KR 유지, 높이 제한 및 페이드아웃 효과)
+      let previewHtml = '';
+      if (!text) {
+        previewHtml = '<p class="text-slate-400 text-[0.85em]">해당 요일의 본문 내용이 등록되어 있지 않습니다.</p>';
+      } else if (/<[a-z][\s\S]*>/i.test(text)) {
+        previewHtml = `
+          <div class="text-[0.85em] max-h-36 overflow-hidden relative leading-relaxed text-slate-700" style="font-family: 'Noto Sans KR', sans-serif;">
+            ${text}
+            <div class="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-white to-transparent pointer-events-none"></div>
+          </div>
+        `;
+      } else {
+        const plainPreview = text.length > 150 ? text.substring(0, 150) + '...' : text;
+        previewHtml = `
+          <p class="text-slate-600 text-[0.85em] line-clamp-3 leading-relaxed whitespace-pre-line" style="font-family: 'Noto Sans KR', sans-serif;">
+            ${plainPreview}
+          </p>
+        `;
+      }
 
       const card = document.getElementById('daily-reading-card');
       card.innerHTML = `
@@ -456,10 +476,8 @@
           </div>
           
           <div>
-            <div class="text-[1.05em] font-bold text-slate-800">${ref || '장절 정보 없음'}</div>
-            <p class="text-slate-600 text-[0.85em] line-clamp-3 mt-1.5 scripture-font leading-relaxed">
-              ${previewText}
-            </p>
+            <div class="text-[1.05em] font-bold text-slate-800 mb-1.5">${ref || '장절 정보 없음'}</div>
+            ${previewHtml}
           </div>
 
           <button onclick="openDailyModal()" 
