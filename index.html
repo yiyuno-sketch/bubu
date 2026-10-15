@@ -75,11 +75,21 @@
           <i data-lucide="book-open" class="w-5 h-5 text-amber-400"></i>
           <span class="text-[1.05em] tracking-wider text-white font-bold">부부묵상 365</span>
         </div>
+        
+<!-- 수정 전
         <div class="flex items-center space-x-1 bg-indigo-900/60 rounded-lg px-2 py-0.5 border border-indigo-700/50">
           <button id="btn-font-dec" class="text-[0.75em] text-indigo-300 hover:text-white px-1.5 py-0.5">가-</button>
           <span class="text-[0.7em] text-indigo-400">|</span>
           <button id="btn-font-inc" class="text-[0.75em] text-indigo-300 hover:text-white px-1.5 py-0.5 font-bold">가+</button>
         </div>
+-->
+
+<!-- 👇 수정 후 (주변보다 3단계 옅고 화사한 톤: bg-indigo-700/60 또는 bg-indigo-600/70) -->
+       <div class="flex items-center space-x-1 bg-indigo-600/60 rounded-lg px-2 py-0.5 border border-indigo-400/40 shadow-inner">
+         <button id="btn-font-dec" class="text-[0.75em] text-indigo-100 hover:text-white px-1.5 py-0.5 transition-colors">가-</button>
+         <span class="text-[0.7em] text-indigo-300/70">|</span>
+         <button id="btn-font-inc" class="text-[0.75em] text-indigo-100 hover:text-white px-1.5 py-0.5 font-bold transition-colors">가+</button>
+       </div>
       </div>
 
       <!-- 2층: 포션 선택 박스 -->
