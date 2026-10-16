@@ -209,11 +209,15 @@
 
    <!-- 하단 액션바 -->
     <footer class="bg-white/95 backdrop-blur-sm border-t border-slate-200 p-3 fixed bottom-0 left-0 right-0 max-w-3xl mx-auto flex items-center justify-between z-30 shadow-lg">
-      <button class="flex items-center space-x-1.5 text-[0.8em] text-slate-600 hover:text-indigo-900 font-medium px-3 py-2 rounded-xl hover:bg-slate-100">
-        <i data-lucide="edit-3" class="w-4 h-4"></i>
-        <span>-+-+-</span>
+  
+  <!-- 👇 중요참고 안내 버튼 -->
+      <button onclick="showNotice()" class="flex items-center space-x-1.5 text-[0.8em] text-slate-700 hover:text-indigo-900 font-medium px-3 py-2 rounded-xl hover:bg-slate-100 active:scale-95 transition-all">
+  <!-- 정보 안내 아이콘 (Lucide info) -->
+        <i data-lucide="info" class="w-4 h-4 text-indigo-600"></i>
+        <span>중요참고</span>
       </button>
-   <!-- 카피라이트 (회색, 0.7em, 기울임꼴) -->
+  
+  <!-- 카피라이트 (회색, 0.7em, 기울임꼴) -->
       <span class="text-slate-400 text-[0.7em] italic select-none">
         CopyRight-Free 2026
       </span>
@@ -613,6 +617,12 @@
       }
     });
 
+    // 중요참고 안내 팝업창
+    function showNotice() {
+      alert("질문, 궁금한 것은 참석교회 목회자나 친한 목사님께 여쭈어 보세요.");
+    }
+
+    
     // 공유 기능
     async function sharePortion() {
       const titleText = document.getElementById('header-title') ? document.getElementById('header-title').innerText : '토라포션 365';
